@@ -1,0 +1,23 @@
+{
+  "name": "Test",
+  "version": "0.0.0",
+  "authors": [
+    "Frank Hale <frankhale@gmail.com>"
+  ],
+  "description": "Test",
+  "main": "main.js",
+  "license": "GPLv2",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.4",
+    "lodash": "~3.10.1",
+    "react": "~0.14.0"
+  }
+}
