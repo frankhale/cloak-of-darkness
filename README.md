@@ -8,9 +8,25 @@ http://www.firthworks.com/roger/cloak/
 
 ##How can I run this?
 
-The easiest way is to install node.js, then install live-server via npm.
+Requirements: node.js
 
-Clone the code, open a terminal to the code and then run live-server and the index.html page will open in your browser.
+```
+npm install -g bower
+```
+
+Clone the code, open a terminal to the code then run 'bower install' to download the dependencies.
+
+```
+bower install
+```
+
+Install live-server
+
+```
+npm install -g live-server
+```
+
+Run live-server the index.html page will open in your browser.
 
 ##Status
 
