@@ -150,9 +150,9 @@ var CloakOfDarkness = (function() {
       var spacer = "";
       if(newLine) {
         spacer = "<p/>";
-        console.log("adding spacer");
       }
       $content.append(text + spacer);
+      $('html,body').animate({ scrollTop: $content[0].scrollHeight }, 1000);
     }
   }
 
@@ -185,14 +185,12 @@ var CloakOfDarkness = (function() {
   function go(direction) {
     var adjacentRoom = _.find(player.room.adjacentRooms, { "direction": direction });
 
-    if(adjacentRoom !== undefined) {
-      //console.log(adjacentRoom);
+    printCommand(direction);
 
+    if(adjacentRoom !== undefined) {
       var room = _.find(rooms, { "id": adjacentRoom.id });
 
       if(room !== undefined) {
-        printCommand(direction);
-
         say("entered: " + room.name, true);
 
         player.room = room;
@@ -272,13 +270,13 @@ var CloakOfDarkness = (function() {
                 modifier = "is not";
               }
 
-              say(i.name + " (which " + modifier + " being worn)");
+              say(i.name + " (which " + modifier + " being worn)", true);
             } else {
               say(i.name);
             }
           });
         } else {
-          say("Your inventory contains no items.")
+          say("Your inventory contains no items.<br/>")
         }
       }
     },
