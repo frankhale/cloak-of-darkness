@@ -1,17 +1,7 @@
-// NOTES:
+// Cloak of Darkness as described here: http://www.firthworks.com/roger/cloak/
 //
-//  - rooms
-//  - characters
-//  - objects
-
-// {
-//   id: 0,
-//   points: 0,
-//   name: "Room Name",
-//   entryText: "Initial room text when entering",
-//   objects: [],
-//   actions: []
-// },
+// Frank Hale <frankhale@gmail.com>
+// 30 October 2015
 
 "use strict";
 
@@ -65,15 +55,14 @@ var CloakOfDarkness = (function () {
     triggers: [],
     actions: [{
       name: "hang", // hang up cloak
-      func: function func(player, system, args) {
-        console.log(args);
-
-        // if(args[0] === "cloak") {
-        //   player.inventory = _.remove(player.inventory, function(i) {
-        //     return i.name !== "cloak";
-        //   });
-        //   say("You take off your cloak and hang it up on the hook.");
-        // }
+      synonyms: ["hang", "place", "put"],
+      func: function func(player, system, cmd, args) {
+        if (args[0] === "cloak") {
+          player.inventory = _.remove(player.inventory, function (i) {
+            return i.name !== "cloak";
+          });
+          system.say("You take off your cloak and hang it up on the hook.");
+        }
       }
     }],
     adjacentRooms: [{
@@ -87,46 +76,53 @@ var CloakOfDarkness = (function () {
     objects: [],
     triggers: [{
       name: "entry",
-      func: function func(player, system, args) {
+      func: function func(player, system) {
         // if the player is not wearing the cloak
         var hasCloak = _.find(player.inventory, function (i) {
           return i.name === "cloak";
         });
 
-        if (hasCloak === undefined) {
+        if (hasCloak === undefined && player.won === undefined) {
           system.say("The room is lit vibrantly and you notice a message is scratched in sawdust on the floor.", true);
+          player.won = true;
+        } else if (player.won === false) {
+          system.say("You can see the room now and there is nothing special about it. You do notice that there is a mess on the floor but you cannot discern why it's there.");
         } else {
-          system.say("You are in the bar and it is extremely dark, you cannot see anything right now.", true);
+          system.say("You are in the bar and it is extremely dark, you cannot see anything right now. You can't even see if there is a light switch.", true);
         }
       }
     }, {
       name: "movement",
-      func: function func(player, system, args) {
-        // var hasCloak = _.find(player.inventory, function(i) {
-        //   return i.name === "cloak";
-        // });
-        //
-        // if(hasCloak !== undefined) {
-        //   args++;
-        //   if(args > 1) {
-        //     player.won = false;
-        //     say("Your movement has disturbed things within the room and the room is no longer as it was when you first entered.", true);
-        //   }
-        // }
-      }
-    }, {
-      name: "won",
-      func: function func(player, system, args) {
-        // if(player.won !== undefined) {
-        //   if(player.won) {
-        //     say("Congratulations you've won!")
-        //   } else {
-        //     say("I'm sorry but you have lost.")
-        //   }
-        // }
+      func: (function (player, system) {
+        var hasCloak = _.find(player.inventory, function (i) {
+          return i.name === "cloak";
+        });
+
+        if (hasCloak !== undefined) {
+          player.won = false;
+          system.say("Your movement has disturbed things within the room and the room is no longer as it was when you first entered.", true);
+        }
+      }).bind(this)
+    }],
+    actions: [{
+      name: "message",
+      synonyms: ["read"],
+      func: function func(player, system, cmd, args) {
+        var hasCloak = _.find(player.inventory, function (i) {
+          return i.name === "cloak";
+        });
+
+        if (args[0] === "message") {
+          if (hasCloak === undefined && player.won !== undefined && player.won) {
+            system.say("The message on the floor reads, YOU WON!");
+          } else if (player.won !== undefined && !player.won) {
+            system.say("Because you disturbed the room while moving around in the dark you made the message written on the floor impossible to read. I'm sorry but you have lost.");
+          } else {
+            system.say("You cannot see anything in the room because it's too dark.");
+          }
+        }
       }
     }],
-    actions: [],
     adjacentRooms: [{
       direction: directionSynonyms.north,
       roomId: 0
@@ -232,8 +228,6 @@ var CloakOfDarkness = (function () {
               commandsEntered: _.uniq(_this.state.commandsEntered.concat([textEntered])),
               commandIndex: -1
             }, function () {
-              //console.log(this.state.commandsEntered);
-
               if (this.props.onKeyEnter !== undefined) {
                 this.props.onKeyEnter(textEntered);
               }
@@ -418,7 +412,7 @@ var CloakOfDarkness = (function () {
           room: {
             name: ""
           },
-          score: 0
+          score: "" // this will be changed later
         }
       };
     }
@@ -427,9 +421,8 @@ var CloakOfDarkness = (function () {
       key: "initializePlayer",
       value: function initializePlayer() {
         return {
-          score: 0,
+          score: "", // this will be changed later
           room: {},
-          won: undefined,
           inventory: initialPlayerInventory
         };
       }
@@ -479,31 +472,43 @@ var CloakOfDarkness = (function () {
       value: function getCommand(command, found) {
         var result = {};
 
-        _.forEach(this.state.playerCommands, function (cmd) {
-          if (_.indexOf(cmd.synonyms, command) > -1) {
-            result = {
-              commandType: "player",
-              command: cmd
-            };
+        var findIn = function findIn(commands, commandType, found) {
+          if (result !== {}) {
+            _.forEach(commands, function (cmd) {
+              if (_.indexOf(cmd.synonyms, command) > -1) {
+                found({
+                  commandType: commandType,
+                  command: cmd
+                });
 
-            return false;
+                return false;
+              }
+            });
           }
-        });
+        };
 
-        if (result.commandType === undefined) {
-          _.forEach(this.state.systemCommands, function (cmd) {
-            if (_.indexOf(cmd.synonyms, command) > -1) {
-              result = {
-                commandType: "system",
-                command: cmd
-              };
+        var found = function found(res) {
+          result = res;
+        };
 
-              return false;
-            }
-          });
-        }
+        findIn(this.state.playerCommands, "player", found);
+        findIn(this.state.player.room.actions, "player", found);
+        findIn(this.state.systemCommands, "system", found);
 
         return result;
+      }
+    }, {
+      key: "findAndExecuteTrigger",
+      value: function findAndExecuteTrigger(name) {
+        if (this.state.player.room.triggers !== undefined && this.state.player.room.triggers.length > 0) {
+          var trigger = _.find(this.state.player.room.triggers, function (t) {
+            return t.name === name;
+          });
+
+          if (trigger !== undefined) {
+            trigger.func(this.state.player, this);
+          }
+        }
       }
     }, {
       key: "go",
@@ -512,34 +517,25 @@ var CloakOfDarkness = (function () {
           return _.indexOf(r.direction, direction) > -1;
         });
 
-        if (adjacentRoom !== undefined) {
+        if (adjacentRoom.length > 0) {
           var room = _.find(this.state.rooms, { "id": adjacentRoom[0].roomId });
-
-          // console.log(room);
-          // console.log(adjacentRoom);
-          // console.log(this.state.rooms);
 
           if (room !== undefined) {
             this.say("entered: " + room.name, true);
 
             this.state.player.room = room;
 
+            this.forceUpdate();
+
             if (this.state.player.room.entryText !== "") {
               this.say(this.state.player.room.entryText, true);
             }
 
-            if (this.state.player.room.triggers !== undefined && this.state.player.room.triggers.length > 0) {
-              var entryTrigger = _.find(this.state.player.room.triggers, function (t) {
-                return t.name === "entry";
-              });
-
-              if (entryTrigger !== undefined) {
-                entryTrigger.func(this.state.player, this);
-              }
-            }
+            this.findAndExecuteTrigger("entry");
           }
         } else {
-          this.say("You cannot go in that direction.");
+          this.say("You cannot go in that direction.", true);
+          this.findAndExecuteTrigger("movement");
         }
       }
     }, {
@@ -549,13 +545,11 @@ var CloakOfDarkness = (function () {
 
         var split = command.split(" ");
         var cmd = split[0];
-        var args = split.slice(1);;
+        var args = split.slice(1);
 
         var cmdObj = this.getCommand(cmd);
 
         if (cmdObj.commandType !== undefined) {
-          //this.say("found command", true);
-
           if (cmdObj.commandType === "player") {
             cmdObj.command.func(this.state.player, this, cmd, args);
           } else if (cmdObj.commandType === "system") {
@@ -583,7 +577,9 @@ var CloakOfDarkness = (function () {
           padding: "10px"
         };
 
-        return React.createElement("div", null, React.createElement(InfoBar, { title: GameTitle, room: this.state.player.room.name, score: this.state.player.score }), React.createElement("div", { id: "content", style: contentStyle }), React.createElement(CommandInput, { onKeyEnter: this.onCommandEntered }));
+        return React.createElement("div", null, React.createElement(InfoBar, { title: GameTitle,
+          room: this.state.player.room.name,
+          score: this.state.player.score }), React.createElement("div", { id: "content", style: contentStyle }), React.createElement(CommandInput, { onKeyEnter: this.onCommandEntered }));
       }
     }]);
 
