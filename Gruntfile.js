@@ -4,20 +4,15 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    "react": {
-      build: {
-        files: {
-          'assets/build/app.js': 'assets/src/app.jsx',
-        }
-      }
-    },
     "babel": {
       options: {
-        sourceMap: true
+        sourceMap: true,
+        plugins: ["transform-react-jsx"],
+        presets: ['babel-preset-es2015']
       },
       dist: {
         files: {
-          "assets/build/app.js": "assets/build/app.js",
+          "assets/build/app.js": "assets/src/app.jsx",
         }
       }
     },
@@ -34,10 +29,6 @@ module.exports = function(grunt) {
   });
 
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-react');
-  grunt.registerTask("default", ["babel"]);
 
-  // Default task(s).
-  grunt.registerTask('default', ['react', 'babel', 'uglify']);
-
+  grunt.registerTask('default', ['babel', 'uglify']);
 };

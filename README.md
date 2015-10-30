@@ -1,6 +1,7 @@
 # cloak-of-darkness
 
-Cloak of Darkness is a reprise of de facto "Hello, World" of interactive fiction.
+Cloak of Darkness is a reprise of the de facto "Hello, World" of interactive
+fiction by the same name.
 
 Here is a source for a definition / requirements for a Cloak Of Darkness like clone:
 
@@ -47,7 +48,37 @@ live-server
 
 ##Status
 
-Rooms and objects are there, you can move between rooms but not all of the interactions have been completed yet.
+Should be able to play through the game.
+
+Note:
+
+- Parser is very crude for performing actions right now. 
+
+##Walkthrough
+
+You only need to make 5 moves to win the game.
+
+Here are the moves:
+
+```
+west
+```
+
+```
+hang cloak
+```
+
+```
+east
+```
+
+```
+south
+```
+
+```
+read message
+```
 
 ###Author(s):
 

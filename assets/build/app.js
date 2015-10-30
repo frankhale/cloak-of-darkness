@@ -1,20 +1,27 @@
+"use strict";
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _typeof(obj) { return obj && obj.constructor === Symbol ? "symbol" : typeof obj; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 // Cloak of Darkness as described here: http://www.firthworks.com/roger/cloak/
 //
 // Frank Hale <frankhale@gmail.com>
 // 30 October 2015
 
-"use strict";
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
 var CloakOfDarkness = (function () {
-  var GameTitle = "Cloak of Darkness";
+  var gameInfo = {
+    title: "Cloak of Darkness",
+    description: "Welcome, Cloak of Darkness is a reprise of the de facto 'Hello, World' of interactive  fiction by the same name. If you want to find out what a 'Cloak of Darkness' is you can find out more <a href='http://www.firthworks.com/roger/cloak' target='_blank'>here</a>.",
+    author: "Frank Hale <frankhale@gmail.com>",
+    releaseDate: "30 October 2015"
+  };
 
   var keys = {
     Enter: 13,
@@ -83,12 +90,12 @@ var CloakOfDarkness = (function () {
         });
 
         if (hasCloak === undefined && player.won === undefined) {
-          system.say("The room is lit vibrantly and you notice a message is scratched in sawdust on the floor.", true);
+          system.say("The room is lit vibrantly and you notice a message is scratched in sawdust on the floor.");
           player.won = true;
         } else if (player.won === false) {
           system.say("You can see the room now and there is nothing special about it. You do notice that there is a mess on the floor but you cannot discern why it's there.");
         } else {
-          system.say("You are in the bar and it is extremely dark, you cannot see anything right now. You can't even see if there is a light switch.", true);
+          system.say("You are in the bar and it is extremely dark, you cannot see anything right now. You can't even see if there is a light switch.");
         }
       }
     }, {
@@ -100,7 +107,7 @@ var CloakOfDarkness = (function () {
 
         if (hasCloak !== undefined) {
           player.won = false;
-          system.say("Your movement has disturbed things within the room and the room is no longer as it was when you first entered.", true);
+          system.say("Your movement has disturbed things within the room and the room is no longer as it was when you first entered.");
         }
       }).bind(this)
     }],
@@ -134,7 +141,7 @@ var CloakOfDarkness = (function () {
     description: "A eerily dark velvet cloak",
     synonyms: ["cloak", "dark cloak", "velvet cloak"],
     examine: function examine(player, system, args) {
-      system.say(this.description, true);
+      system.say(this.description);
     },
     type: {
       name: "garment",
@@ -163,14 +170,15 @@ var CloakOfDarkness = (function () {
     function CommandInput() {
       _classCallCheck(this, CommandInput);
 
-      _get(Object.getPrototypeOf(CommandInput.prototype), "constructor", this).call(this);
+      var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(CommandInput).call(this));
 
-      this.onCommandInputKeyUp = this.onCommandInputKeyUp.bind(this);
+      _this.onCommandInputKeyUp = _this.onCommandInputKeyUp.bind(_this);
 
-      this.state = {
+      _this.state = {
         commandIndex: -1,
         commandsEntered: []
       };
+      return _this;
     }
 
     _createClass(CommandInput, [{
@@ -191,7 +199,7 @@ var CloakOfDarkness = (function () {
     }, {
       key: "onCommandInputKeyUp",
       value: function onCommandInputKeyUp(e) {
-        var _this = this;
+        var _this2 = this;
 
         if (e.which === keys.Up) {
           var commandIndex = this.state.commandIndex === -1 ? this.state.commandsEntered.length - 1 : --this.state.commandIndex;
@@ -217,15 +225,15 @@ var CloakOfDarkness = (function () {
         } else if (e.which === keys.Enter) {
           var _ret = (function () {
 
-            var textEntered = _this.state.commandText.val();
+            var textEntered = _this2.state.commandText.val();
             if (!(textEntered.length > 0)) return {
                 v: undefined
               };
 
-            _this.state.commandText.val("");
+            _this2.state.commandText.val("");
 
-            _this.setState({
-              commandsEntered: _.uniq(_this.state.commandsEntered.concat([textEntered])),
+            _this2.setState({
+              commandsEntered: _.uniq(_this2.state.commandsEntered.concat([textEntered])),
               commandIndex: -1
             }, function () {
               if (this.props.onKeyEnter !== undefined) {
@@ -234,7 +242,7 @@ var CloakOfDarkness = (function () {
             });
           })();
 
-          if (typeof _ret === "object") return _ret.v;
+          if ((typeof _ret === "undefined" ? "undefined" : _typeof(_ret)) === "object") return _ret.v;
         }
       }
     }, {
@@ -250,7 +258,12 @@ var CloakOfDarkness = (function () {
           paddingLeft: "2px"
         };
 
-        return React.createElement("div", { id: "commandContainer", style: commandContainerStyle }, ">", React.createElement("input", { id: "commandText", style: textInputStyle, type: "text", onKeyUp: this.onCommandInputKeyUp }));
+        return React.createElement(
+          "div",
+          { id: "commandContainer", style: commandContainerStyle },
+          ">",
+          React.createElement("input", { id: "commandText", style: textInputStyle, type: "text", onKeyUp: this.onCommandInputKeyUp })
+        );
       }
     }]);
 
@@ -263,7 +276,7 @@ var CloakOfDarkness = (function () {
     function InfoBar() {
       _classCallCheck(this, InfoBar);
 
-      _get(Object.getPrototypeOf(InfoBar.prototype), "constructor", this).apply(this, arguments);
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(InfoBar).apply(this, arguments));
     }
 
     _createClass(InfoBar, [{
@@ -300,7 +313,27 @@ var CloakOfDarkness = (function () {
           separator = " | ";
         }
 
-        return React.createElement("div", { id: "info", style: infoStyle }, React.createElement("span", { id: "title", style: titleStyle }, this.props.title, " ", separator), React.createElement("span", { id: "room", style: roomStyle }, this.props.room), React.createElement("span", { id: "score", style: scoreStyle }, this.props.score));
+        return React.createElement(
+          "div",
+          { id: "info", style: infoStyle },
+          React.createElement(
+            "span",
+            { id: "title", style: titleStyle },
+            this.props.title,
+            " ",
+            separator
+          ),
+          React.createElement(
+            "span",
+            { id: "room", style: roomStyle },
+            this.props.room
+          ),
+          React.createElement(
+            "span",
+            { id: "score", style: scoreStyle },
+            this.props.score
+          )
+        );
       }
     }]);
 
@@ -313,8 +346,9 @@ var CloakOfDarkness = (function () {
     function GameUI() {
       _classCallCheck(this, GameUI);
 
-      _get(Object.getPrototypeOf(GameUI.prototype), "constructor", this).call(this);
-      this.onCommandEntered = this.onCommandEntered.bind(this);
+      var _this4 = _possibleConstructorReturn(this, Object.getPrototypeOf(GameUI).call(this));
+
+      _this4.onCommandEntered = _this4.onCommandEntered.bind(_this4);
 
       var playerCommands = [{
         synonyms: ["exits", "ex"],
@@ -325,9 +359,9 @@ var CloakOfDarkness = (function () {
           });
 
           if (exits.length > 0) {
-            this.say("the following exits are available: " + exits.join(', '), true);
+            this.say("the following exits are available: " + exits.join(', '));
           }
-        }).bind(this)
+        }).bind(_this4)
       }, {
         synonyms: ["inventory", "i"],
         func: (function (player, system, cmd, args) {
@@ -342,7 +376,7 @@ var CloakOfDarkness = (function () {
                   modifier = "is not";
                 }
 
-                this.say(i.name + " (which " + modifier + " being worn)", true);
+                this.say(i.name + " (which " + modifier + " being worn)");
               } else {
                 this.say(i.name);
               }
@@ -350,14 +384,14 @@ var CloakOfDarkness = (function () {
           } else {
             this.say("Your inventory contains no items.<br/>");
           }
-        }).bind(this)
+        }).bind(_this4)
       }, {
         synonyms: ["look", "l"],
         func: (function (player, system, cmd, args) {
           if (player.room !== {} && player.room.entryText.length > 0) {
-            this.say(player.room.entryText, true);
+            this.say(player.room.entryText);
           }
-        }).bind(this)
+        }).bind(_this4)
       }, {
         synonyms: ["examine", "x"],
         func: (function (player, system, cmd, args) {
@@ -372,36 +406,35 @@ var CloakOfDarkness = (function () {
               this.say("I cannot examine that object.");
             }
           }
-        }).bind(this)
+        }).bind(_this4)
       }, {
         synonyms: flattenDirectionSynonyms(),
         func: (function (player, system, cmd, args) {
-          //this.say(`go: ${cmd}`, true);
           this.go(cmd);
-        }).bind(this)
+        }).bind(_this4)
       }];
 
       var systemCommands = [{
         synonyms: ["/clear"],
         func: (function (cmd, args) {
           this.clear();
-        }).bind(this)
+        }).bind(_this4)
       }, {
         synonyms: ["/restart"],
         func: (function (cmd, args) {
           this.clear();
           this.startGame();
-        }).bind(this)
+        }).bind(_this4)
       }, {
         synonyms: ["help", "h"],
         func: (function (cmd, args) {
           var help = ["<b>/clear</b> - clears the screen", "<b>/restart</b> - restarts the game", "<b>h, help</b> - prints this message", "<b>i, inventory</b> - prints your inventory", "<b>l, look</b> - prints the description of the current room", "<b>x, examine</b> - prints a detailed description of an object", "<b>ex, exits</b> - prints the list of exits for this room", "<b>n, north, ne, northeast, nw, northwest, s, south, se, southeast, sw, southwest, e, east, w, west</b> - moves the player to a room relative to the direction specified"];
 
           this.say("<blockquote>" + help.join("<br/>") + "</blockquote>");
-        }).bind(this)
+        }).bind(_this4)
       }];
 
-      this.state = {
+      _this4.state = {
         rooms: rooms,
         objects: [],
         playerCommands: playerCommands,
@@ -415,6 +448,7 @@ var CloakOfDarkness = (function () {
           score: "" // this will be changed later
         }
       };
+      return _this4;
     }
 
     _createClass(GameUI, [{
@@ -443,7 +477,9 @@ var CloakOfDarkness = (function () {
       }
     }, {
       key: "say",
-      value: function say(text, newLine) {
+      value: function say(text) {
+        var newLine = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+
         if (text.length > 0) {
           var spacer = "";
           if (newLine) {
@@ -463,7 +499,11 @@ var CloakOfDarkness = (function () {
           player.room = firstRoom;
 
           this.setState({ player: player }, (function () {
-            this.say(player.room.entryText, true);
+            this.say(gameInfo.description);
+            this.say("Author: " + gameInfo.author + "<br/>Release Date: " + gameInfo.releaseDate);
+            this.say("---");
+
+            this.say(player.room.entryText);
           }).bind(this));
         }
       }
@@ -521,20 +561,20 @@ var CloakOfDarkness = (function () {
           var room = _.find(this.state.rooms, { "id": adjacentRoom[0].roomId });
 
           if (room !== undefined) {
-            this.say("entered: " + room.name, true);
+            this.say("entered: " + room.name);
 
             this.state.player.room = room;
 
             this.forceUpdate();
 
             if (this.state.player.room.entryText !== "") {
-              this.say(this.state.player.room.entryText, true);
+              this.say(this.state.player.room.entryText);
             }
 
             this.findAndExecuteTrigger("entry");
           }
         } else {
-          this.say("You cannot go in that direction.", true);
+          this.say("You cannot go in that direction.");
           this.findAndExecuteTrigger("movement");
         }
       }
@@ -551,7 +591,7 @@ var CloakOfDarkness = (function () {
 
         if (cmdObj.commandType !== undefined) {
           if (cmdObj.commandType === "player") {
-            cmdObj.command.func(this.state.player, this, cmd, args);
+            cmdObj.command.func(this.state.player, this.state.systemAPI, cmd, args);
           } else if (cmdObj.commandType === "system") {
             cmdObj.command.func(cmd, args);
           }
@@ -564,7 +604,14 @@ var CloakOfDarkness = (function () {
       value: function componentDidMount() {
         this.setState({
           content: $("#content"),
-          player: this.initializePlayer()
+          player: this.initializePlayer(),
+          systemAPI: {
+            // Just one function here so far, if anything else is needed to be
+            // called from the rooms or objects then it'll be put in here.
+            say: (function (text, newLine) {
+              this.say(text, newLine);
+            }).bind(this)
+          }
         }, function () {
           this.startGame();
         });
@@ -577,9 +624,15 @@ var CloakOfDarkness = (function () {
           padding: "10px"
         };
 
-        return React.createElement("div", null, React.createElement(InfoBar, { title: GameTitle,
-          room: this.state.player.room.name,
-          score: this.state.player.score }), React.createElement("div", { id: "content", style: contentStyle }), React.createElement(CommandInput, { onKeyEnter: this.onCommandEntered }));
+        return React.createElement(
+          "div",
+          null,
+          React.createElement(InfoBar, { title: gameInfo.title,
+            room: this.state.player.room.name,
+            score: this.state.player.score }),
+          React.createElement("div", { id: "content", style: contentStyle }),
+          React.createElement(CommandInput, { onKeyEnter: this.onCommandEntered })
+        );
       }
     }]);
 

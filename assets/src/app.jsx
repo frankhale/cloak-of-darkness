@@ -4,7 +4,12 @@
 // 30 October 2015
 
 var CloakOfDarkness = (function() {
-  const GameTitle = "Cloak of Darkness";
+  const gameInfo = {
+    title: "Cloak of Darkness",
+    description: "Welcome, Cloak of Darkness is a reprise of the de facto 'Hello, World' of interactive  fiction by the same name. If you want to find out what a 'Cloak of Darkness' is you can find out more <a href='http://www.firthworks.com/roger/cloak' target='_blank'>here</a>.",
+    author: "Frank Hale <frankhale@gmail.com>",
+    releaseDate: "30 October 2015"
+  };
 
   const keys = {
     Enter: 13,
@@ -84,12 +89,12 @@ var CloakOfDarkness = (function() {
             });
 
             if(hasCloak === undefined && player.won === undefined) {
-              system.say("The room is lit vibrantly and you notice a message is scratched in sawdust on the floor.", true);
+              system.say("The room is lit vibrantly and you notice a message is scratched in sawdust on the floor.");
               player.won = true;
             } else if (player.won === false) {
               system.say("You can see the room now and there is nothing special about it. You do notice that there is a mess on the floor but you cannot discern why it's there.");
             } else {
-              system.say("You are in the bar and it is extremely dark, you cannot see anything right now. You can't even see if there is a light switch.", true);
+              system.say("You are in the bar and it is extremely dark, you cannot see anything right now. You can't even see if there is a light switch.");
             }
           }
         },
@@ -102,7 +107,7 @@ var CloakOfDarkness = (function() {
 
             if(hasCloak !== undefined) {
               player.won = false;
-              system.say("Your movement has disturbed things within the room and the room is no longer as it was when you first entered.", true);
+              system.say("Your movement has disturbed things within the room and the room is no longer as it was when you first entered.");
             }
           }.bind(this)
         }
@@ -145,7 +150,7 @@ var CloakOfDarkness = (function() {
       description: "A eerily dark velvet cloak",
       synonyms: ["cloak", "dark cloak", "velvet cloak"],
       examine: function(player, system, args) {
-        system.say(this.description, true);
+        system.say(this.description);
       },
       type: {
         name: "garment",
@@ -314,7 +319,7 @@ var CloakOfDarkness = (function() {
             });
 
             if(exits.length > 0) {
-              this.say(`the following exits are available: ${exits.join(', ')}`, true);
+              this.say(`the following exits are available: ${exits.join(', ')}`);
             }
 
           }.bind(this)
@@ -333,7 +338,7 @@ var CloakOfDarkness = (function() {
                     modifier = "is not";
                   }
 
-                  this.say(i.name + " (which " + modifier + " being worn)", true);
+                  this.say(i.name + " (which " + modifier + " being worn)");
                 } else {
                   this.say(i.name);
                 }
@@ -348,7 +353,7 @@ var CloakOfDarkness = (function() {
           func: function(player, system, cmd, args) {
             if(player.room !== {} &&
                player.room.entryText.length > 0) {
-              this.say(player.room.entryText, true);
+              this.say(player.room.entryText);
             }
           }.bind(this)
         },
@@ -371,7 +376,6 @@ var CloakOfDarkness = (function() {
         {
           synonyms: flattenDirectionSynonyms(),
           func: function(player, system, cmd, args) {
-            //this.say(`go: ${cmd}`, true);
             this.go(cmd);
           }.bind(this)
         }
@@ -441,7 +445,7 @@ var CloakOfDarkness = (function() {
     printCommand(command) {
       this.state.content.append("<h3>&gt;" + command + "</h3>");
     }
-    say(text, newLine) {
+    say(text, newLine = true) {
       if(text.length > 0) {
         var spacer = "";
         if(newLine) {
@@ -459,7 +463,11 @@ var CloakOfDarkness = (function() {
         player.room = firstRoom;
 
         this.setState({ player: player }, function() {
-          this.say(player.room.entryText, true);
+          this.say(gameInfo.description);
+          this.say(`Author: ${gameInfo.author}<br/>Release Date: ${gameInfo.releaseDate}`);
+          this.say("---");
+
+          this.say(player.room.entryText);
         }.bind(this));
       }
     }
@@ -512,20 +520,20 @@ var CloakOfDarkness = (function() {
         var room = _.find(this.state.rooms, { "id": adjacentRoom[0].roomId });
 
         if(room !== undefined) {
-          this.say("entered: " + room.name, true);
+          this.say("entered: " + room.name);
 
           this.state.player.room = room;
 
           this.forceUpdate();
 
           if(this.state.player.room.entryText !== "") {
-            this.say(this.state.player.room.entryText, true);
+            this.say(this.state.player.room.entryText);
           }
 
           this.findAndExecuteTrigger("entry");
         }
       } else {
-         this.say("You cannot go in that direction.", true);
+         this.say("You cannot go in that direction.");
          this.findAndExecuteTrigger("movement");
       }
     }
@@ -540,7 +548,7 @@ var CloakOfDarkness = (function() {
 
       if(cmdObj.commandType !== undefined) {
         if(cmdObj.commandType === "player") {
-          cmdObj.command.func(this.state.player, this, cmd, args);
+          cmdObj.command.func(this.state.player, this.state.systemAPI, cmd, args);
         } else if (cmdObj.commandType === "system") {
           cmdObj.command.func(cmd, args);
         }
@@ -551,7 +559,14 @@ var CloakOfDarkness = (function() {
     componentDidMount() {
       this.setState({
         content: $("#content"),
-        player: this.initializePlayer()
+        player: this.initializePlayer(),
+        systemAPI: {
+          // Just one function here so far, if anything else is needed to be
+          // called from the rooms or objects then it'll be put in here.
+          say: function(text, newLine) {
+            this.say(text, newLine);
+          }.bind(this)
+        }
       }, function() {
         this.startGame();
       });
@@ -564,7 +579,7 @@ var CloakOfDarkness = (function() {
 
       return (
         <div>
-          <InfoBar title={GameTitle}
+          <InfoBar title={gameInfo.title}
                    room={this.state.player.room.name}
                    score={this.state.player.score} />
           <div id="content" style={contentStyle}></div>
