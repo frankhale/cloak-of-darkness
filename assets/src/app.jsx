@@ -6,13 +6,13 @@
 var CloakOfDarkness = (function() {
   const GameTitle = "Cloak of Darkness";
 
-  var keys = {
+  const keys = {
     Enter: 13,
     Up: 38,
     Down: 40
   };
 
-  var directionSynonyms = {
+  const directionSynonyms = {
     north: ["north", "n"],
     northEast: ["northeast", "ne"],
     northWest: ["northwest", "nw"],

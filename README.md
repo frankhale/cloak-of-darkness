@@ -6,6 +6,10 @@ Here is a source for a definition / requirements for a Cloak Of Darkness like cl
 
 http://www.firthworks.com/roger/cloak/
 
+##Screenshot
+
+![Game user interface screenshot](screenshots/game.png)
+
 ##How can I run this?
 
 Requirements: <b>node.js</b> - https://nodejs.org
