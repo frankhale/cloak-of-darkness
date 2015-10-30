@@ -1,12 +1,10 @@
 {
-  "name": "Test",
-  "version": "0.0.0",
-  "authors": [
-    "Frank Hale <frankhale@gmail.com>"
-  ],
-  "description": "Test",
+  "name": "cloak-of-darkness",
+  "version": "0.0.1",
+  "author": "Frank Hale <frankhale@gmail.com>",
+  "description": "A Cloak of Darkness implementation (a text adventure Hello, World)",
   "main": "main.js",
-  "license": "GPLv2",
+  "license": "GPL-2.0",
   "private": true,
   "ignore": [
     "**/.*",
