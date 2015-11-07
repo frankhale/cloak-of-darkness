@@ -243,8 +243,8 @@ class DataLoader {
   }
 }
 
-let dl = new DataLoader();
-
+//let dl = new DataLoader();
+//
 // dl.load("/assets/data/cloak-of-darkness-data.txt",
 //   (status) => { console.log(status); },
 //   (data) => {
