@@ -14,8 +14,9 @@
     "tests"
   ],
   "dependencies": {
-    "jquery": "~2.1.4",
-    "lodash": "~3.10.1",
-    "react": "~0.14.0"
+    "jquery": "^2.1.4",
+    "lodash": "^3.10.1",
+    "react": "^0.14.2",
+    "marked": "^0.3.5"
   }
 }

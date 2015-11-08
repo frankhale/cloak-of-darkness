@@ -1,14 +1,9 @@
-// Cloak of Darkness as described here: http://www.firthworks.com/roger/cloak/
-//
-// Frank Hale <frankhale@gmail.com>
-// 30 October 2015
-
 var CloakOfDarkness = (function() {
   const gameInfo = {
     title: "Cloak of Darkness",
-    description: "Welcome, Cloak of Darkness is a reprise of the de facto 'Hello, World' of interactive  fiction by the same name. If you want to find out what a 'Cloak of Darkness' is you can find out more <a href='http://www.firthworks.com/roger/cloak' target='_blank'>here</a>.",
+    description: "Welcome, Cloak of Darkness is an implementation of the de facto 'Hello, World' of interactive  fiction by the same name. If you want to find out what a 'Cloak of Darkness' is you can find out more <a href='http://www.firthworks.com/roger/cloak' target='_blank'>here</a>.",
     author: "Frank Hale <frankhale@gmail.com>",
-    releaseDate: "30 October 2015"
+    releaseDate: "7 November 2015"
   };
 
   const keys = {
@@ -28,144 +23,10 @@ var CloakOfDarkness = (function() {
     west: ["west", "w"]
   };
 
-  const rooms = [
-    {
-      id: 0,
-      name: "Opera House Foyer",
-      entryText: "You are in the Foyer of the Opera House. This room has doors to the south and west, also an unusable exit to the north. The room is quiet and you don't see anyone around.",
-      objects: [],
-      triggers: [],
-      actions: [],
-      adjacentRooms: [
-        {
-          direction: directionSynonyms.west,
-          roomId: 1
-        },
-        {
-          direction: directionSynonyms.south,
-          roomId: 2
-        }
-      ]
-    },
-    {
-      id: 1,
-      name: "Cloak Room",
-      entryText: "You are in the cloak room and you can see a hook on the wall.",
-      objects: [],
-      triggers: [],
-      actions: [
-        {
-          name: "hang", // hang up cloak
-          synonyms: ["hang", "place", "put"],
-          func: function(player, system, cmd, args) {
-            if(args[0] === "cloak") {
-               player.inventory = _.remove(player.inventory, function(i) {
-                 return i.name !== "cloak";
-               });
-               system.say("You take off your cloak and hang it up on the hook.");
-            }
-          }
-        }
-      ],
-      adjacentRooms: [
-        {
-          direction: directionSynonyms.east,
-          roomId: 0
-        }
-      ]
-    },
-    {
-      id: 2,
-      name: "Bar",
-      entryText: "",
-      objects: [],
-      triggers: [
-        {
-          name: "entry",
-          func: function(player, system) {
-            // if the player is not wearing the cloak
-            var hasCloak = _.find(player.inventory, function(i) {
-              return i.name === "cloak";
-            });
-
-            if(hasCloak === undefined && player.won === undefined) {
-              system.say("The room is lit vibrantly and you notice a message is scratched in sawdust on the floor.");
-              player.won = true;
-            } else if (player.won === false) {
-              system.say("You can see the room now and there is nothing special about it. You do notice that there is a mess on the floor but you cannot discern why it's there.");
-            } else {
-              system.say("You are in the bar and it is extremely dark, you cannot see anything right now. You can't even see if there is a light switch.");
-            }
-          }
-        },
-        {
-          name: "movement",
-          func: function(player, system) {
-            var hasCloak = _.find(player.inventory, function(i) {
-              return i.name === "cloak";
-            });
-
-            if(hasCloak !== undefined) {
-              player.won = false;
-              system.say("Your movement has disturbed things within the room and the room is no longer as it was when you first entered.");
-            }
-          }.bind(this)
-        }
-      ],
-      actions: [
-        {
-          name: "message",
-          synonyms: ["read"],
-          func: function(player, system, cmd, args) {
-            var hasCloak = _.find(player.inventory, function(i) {
-              return i.name === "cloak";
-            });
-
-            if(args[0] === "message") {
-              if(hasCloak === undefined &&
-                 player.won !== undefined &&
-                 player.won) {
-                system.say("The message on the floor reads, YOU WON!");
-              } else if (player.won !== undefined && !player.won) {
-                system.say("Because you disturbed the room while moving around in the dark you made the message written on the floor impossible to read. I'm sorry but you have lost.");
-              } else {
-                system.say("You cannot see anything in the room because it's too dark.");
-              }
-            }
-          }
-        }
-      ],
-      adjacentRooms: [
-        {
-          direction: directionSynonyms.north,
-          roomId: 0
-        }
-      ]
-    },
-  ];
-
-  const objects = [
-    {
-      name: "cloak",
-      description: "A eerily dark velvet cloak",
-      synonyms: ["cloak", "dark cloak", "velvet cloak"],
-      examine: function(player, system, args) {
-        system.say(this.description);
-      },
-      type: {
-        name: "garment",
-        worn: true,
-        description: "This garment is made of a light absorbing material causing it to cancels available light shedding darkness on objects around you."
-      }
-    }
-  ]
-
-  const initialPlayerInventory = [_.find(objects, { "name" : "cloak" })];
-
   function flattenDirectionSynonyms() {
-    var result = [];
+    let result = [];
 
-    for(var p in directionSynonyms) {
+    for(let p in directionSynonyms) {
       if(directionSynonyms.hasOwnProperty(p)) {
         result = result.concat(directionSynonyms[p]);
       }
@@ -174,89 +35,291 @@ var CloakOfDarkness = (function() {
     return result;
   }
 
-  class CommandInput extends React.Component {
-    constructor() {
-      super();
+  // borrowed from: http://stackoverflow.com/a/7220510/170217
+  function syntaxHighlight(json) {
+      if (typeof json != 'string') {
+           json = JSON.stringify(json, undefined, 2);
+      }
+      json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+          var cls = 'number';
+          if (/^"/.test(match)) {
+              if (/:$/.test(match)) {
+                  cls = 'key';
+              } else {
+                  cls = 'string';
+              }
+          } else if (/true|false/.test(match)) {
+              cls = 'boolean';
+          } else if (/null/.test(match)) {
+              cls = 'null';
+          }
+          return '<span class="' + cls + '">' + match + '</span>';
+      });
+  };
 
-      this.onCommandInputKeyUp = this.onCommandInputKeyUp.bind(this);
-
-      this.state = {
-        commandIndex: -1,
-        commandsEntered: []
-      };
-    }
-    componentDidMount() {
-      // Make sure the command input box width is a consistant width based on the
-      // width of the window.
-      var $commandText = $("#commandText");
-
-      this.setState({ commandText: $commandText });
-
-      $commandText.width(window.innerWidth - 50);
-
-      $(window).resize(function(e) {
-        $commandText.width(window.innerWidth - 50);
+  class DataLoader {
+    load(dataUrl, error, complete) {
+      $.ajax({
+        url: dataUrl,
+        error: function(status) {
+          error(status);
+        },
+        success: function(data) {
+          complete(data)
+        }
       });
     }
-    onCommandInputKeyUp(e) {
-      if(e.which === keys.Up) {
-        var commandIndex = (this.state.commandIndex === -1) ?
-                            this.state.commandsEntered.length - 1 :
-                            --this.state.commandIndex;
+    read(data) {
+      const idAndDataRegex = /^(\d+)\s+/;
 
-        if(commandIndex < 0) {
-          commandIndex = 0;
-        }
+      let readNumberedLines = (data) => {
+        // Example:
+        //
+        // 1 You are in the Foyer of the Opera House. This room has doors to the
+        // 1 south and west, also an unusable exit to the north. The room is quiet
+        // 1 and you don't see anyone around.
 
-        this.setState({ commandIndex: commandIndex}, function() {
-          this.state.commandText.val(this.state.commandsEntered[commandIndex]);
+        let result = [];
+
+        _.forEach(data, (l) => {
+          if(idAndDataRegex.test(l)) {
+            const s = l.split(idAndDataRegex)
+                     .filter(function(el) {return el.length != 0});
+
+            result.push({
+              id: Number(s[0]),
+              text: s[1]
+            });
+          }
         });
 
-      } else if (e.which === keys.Down) {
+        return result;
+      }
 
-        var commandIndex = (this.state.commandIndex === -1) ? 0 : ++this.state.commandIndex;
+      let joinNumberedLines = (data) => {
+        let result = [];
+        const ids = _.uniq(_.pluck(data, "id"));
 
-        if(commandIndex > this.state.commandsEntered.length) {
-          commandIndex = this.state.commandsEntered.length;
-        }
+        _.forEach(ids, (id) => {
+          const d = _.where(data, { "id" : id});
+          const textJoined = _.pluck(d, "text").join(" ");
 
-        this.setState({ commandIndex: commandIndex }, function() {
-          this.state.commandText.val(this.state.commandsEntered[commandIndex]);
+          result.push({
+            id: id,
+            text: textJoined
+          });
         });
 
-      } else if(e.which === keys.Enter) {
+        return result;
+      }
 
-        const textEntered = this.state.commandText.val();
-        if(!(textEntered.length > 0)) return;
+      let getGroupedLines = (data) => {
+        let groups = [];
+        const temp = readNumberedLines(data);
+        const ids = _.uniq(_.pluck(temp, "id"));
 
-        this.state.commandText.val("");
+        _.forEach(ids, (id) => {
+          const d = _.where(temp, { "id" : id});
 
-        this.setState({
-          commandsEntered: _.uniq(this.state.commandsEntered.concat([textEntered])),
-          commandIndex: -1
-        }, function() {
-          if(this.props.onKeyEnter !== undefined) {
-            this.props.onKeyEnter(textEntered);
+          groups.push({
+             id: id,
+             group: _.pluck(d, "text")
+          });
+        });
+
+        return groups;
+      }
+
+      let getStructuredObject = (data, conditional) => {
+        let result = [];
+        const groups = getGroupedLines(data);
+
+        _.forEach(groups, (g) => {
+          let item = {
+            name: g.group.shift()
+          };
+
+          g.group.map((ig) => {
+            if(ig.indexOf(":") != -1) {
+              const gName = ig.split(":")[0];
+
+              let conditionalItem;
+
+              if(conditional !== undefined) {
+                conditionalItem = conditional(gName, ig.replace(`${gName}:`, "").trim());
+              }
+
+              if(conditionalItem === undefined && ig.startsWith(gName)) {
+                item[gName] = ig.replace(`${gName}:`, "").trim().split(",").map((i) => { return i.trim(); });
+              } else {
+                item[gName] = conditionalItem;
+              }
+            }
+          });
+
+          result.push(item);
+        });
+
+        return result;
+      }
+
+      let readText = (data) => {
+        return joinNumberedLines(readNumberedLines(data));
+      };
+
+      let readSynonyms = (data) => {
+        // Example:
+        //
+        // synonyms
+        // 1 cloak, dark cloak, velvet cloak, jacket, overcoat
+        // 2 hang, place, put, throw, toss
+        // 3 read, look, ponder, interpret, consider
+        // 4 message, words, inscription, sign
+        // 5 foyer, front room, entrance
+        // 6 cloak room, closet
+        // 7 bar
+
+        const temp = joinNumberedLines(readNumberedLines(data));
+        let synonyms = [];
+
+        _.forEach(temp, (s) => {
+          synonyms.push({
+            id: s.id,
+            words: s.text.split(",").map((x) => { return x.trim(); })
+          });
+        });
+
+        return synonyms;
+      }
+
+      let readRooms = (data) => {
+        // Example:
+        //
+        // rooms
+        // 1 Opera House Foyer
+        // 1 synonyms: 5
+        // 1 text: 1
+        // 2 Cloak Room
+        // 2 synonyms: 6
+        // 2 text: 2
+        // 3 The Bar
+        // 3 synonyms: 7
+        // 3 text: 3, 9, 11, 12
+
+        return getStructuredObject(data, (gName, data) => {
+          if(gName === "synonyms" || gName === "text") {
+            return data.split(",").map((n) => { return Number(n); });
           }
         });
       }
-    }
-    render() {
-      const commandContainerStyle = {
-        paddingLeft: "10px"
+
+      let readActions = (data) => {
+        // Example:
+        //
+        // actions
+        // 1 hang
+        // 1 synonyms: 2
+        // 1 text: 4
+        // 2 read
+        // 2 synonyms: 3
+        // 2 text: 6, 7, 8
+
+        return getStructuredObject(data, (gName, data) => {
+          if(gName === "synonyms" || gName === "text") {
+            return data.split(",").map((n) => { return Number(n); });
+          }
+        });
+      }
+
+      let readTriggers = (data) => {
+        // Example:
+        //
+        // triggers
+        // 1 movement
+        // 1 rooms: 3
+
+        return getStructuredObject(data, (gName, data) => {
+          if(gName === "rooms") {
+            return data.split(" ").map((n) => { return Number(n); });
+          }
+        });
+      }
+
+      let readObjects = (data) => {
+        // Example:
+        //
+        // objects
+        // 1 cloak
+        // 1 synonyms: 1
+        // 1 wearable: true
+        // 1 text: 13, 14
+        // 2 message
+        // 2 synonyms: 4
+        // 2 wearable: false
+        // 2  text: 15
+
+        return getStructuredObject(data, (gName, data) => {
+          if(gName === "synonyms" || gName === "text") {
+            return data.split(",").map((n) => { return Number(n); });
+          } else if (gName === "wearable") {
+            let result = false;
+
+            if(data.toLowerCase().trim().substr("true") > -1) {
+              result = true;
+            } else if(data.toLowerCase().trim().substr("false") > -1) {
+              result = false;
+            }
+            return result;
+          }
+        });
+      }
+
+      let readExits = (data) => {
+        return readNumberedLines(data).map((e) => {
+          return {
+            id: e.id,
+            rooms: e.text.split(",").map((n) => { return Number(n); })
+          }
+        });
+      }
+
+      let readPlayer = (data) => {
+        return getStructuredObject(data, (gName, data) => {
+          if(gName === "items") {
+            return data.split(",").map((n) => { return Number(n); });
+          }
+        });
+      }
+
+      const lines = data.split("\n").filter((el) => {return el.length != 0});
+      const name = lines.shift().trim();
+
+      let result = {
+        name: name
       };
 
-      const textInputStyle = {
-        border: "none",
-        outline: "none",
-        paddingLeft: "2px"
-      };
+      if(name === "text") {
+        result.data = readText(lines);
+      } else if (name === "synonyms") {
+        result.data = readSynonyms(lines);
+      } else if (name === "rooms") {
+        result.data = readRooms(lines);
+      } else if (name === "actions") {
+        result.data = readActions(lines);
+      } else if (name === "triggers") {
+        result.data = readTriggers(lines);
+      } else if (name === "objects") {
+        result.data = readObjects(lines);
+      } else if (name === "exits") {
+        result.data = readExits(lines);
+      } else if (name === "player") {
+        result.data = readPlayer(lines);
+      } else {
+        result.data = [];
+      }
 
-      return (
-        <div id="commandContainer" style={commandContainerStyle}>
-          &gt;<input id="commandText" style={textInputStyle} type="text" onKeyUp={this.onCommandInputKeyUp} />
-        </div>
-      );
+      return result;
     }
   }
 
@@ -288,7 +351,7 @@ var CloakOfDarkness = (function() {
         position: "absolute"
       };
 
-      var separator = "";
+      let separator = "";
       if((this.props.title !== undefined && this.props.title.length > 0) &&
          (this.props.room !== undefined && this.props.room.length > 0)) {
            separator = " | ";
@@ -304,6 +367,92 @@ var CloakOfDarkness = (function() {
     }
   }
 
+  class CommandInput extends React.Component {
+    constructor() {
+      super();
+      this.onCommandInputKeyUp = this.onCommandInputKeyUp.bind(this);
+      this.state = {
+        commandIndex: -1,
+        commandsEntered: []
+      };
+    }
+    componentDidMount() {
+      // Make sure the command input box width is a consistant width based on the
+      // width of the window.
+      const $commandText = $("#commandText");
+
+      this.setState({ commandText: $commandText });
+
+      function resizeCommandInput() {
+        $commandText.width(window.innerWidth - 50);
+      }
+
+      resizeCommandInput();
+
+      $(window).resize(function(e) {
+        resizeCommandInput();
+      });
+    }
+    onCommandInputKeyUp(e) {
+      if(e.which === keys.Up) {
+        let commandIndex = (this.state.commandIndex === -1) ?
+                            this.state.commandsEntered.length - 1 :
+                            --this.state.commandIndex;
+
+        if(commandIndex < 0) {
+          commandIndex = 0;
+        }
+
+        this.setState({ commandIndex: commandIndex}, function() {
+          this.state.commandText.val(this.state.commandsEntered[commandIndex]);
+        });
+
+      } else if (e.which === keys.Down) {
+        let commandIndex = (this.state.commandIndex === -1) ? 0 : ++this.state.commandIndex;
+
+        if(commandIndex > this.state.commandsEntered.length) {
+          commandIndex = this.state.commandsEntered.length;
+        }
+
+        this.setState({ commandIndex: commandIndex }, function() {
+          this.state.commandText.val(this.state.commandsEntered[commandIndex]);
+        });
+
+      } else if(e.which === keys.Enter) {
+        const textEntered = this.state.commandText.val();
+        if(!(textEntered.length > 0)) return;
+
+        this.state.commandText.val("");
+
+        this.setState({
+          commandsEntered: _.uniq(this.state.commandsEntered.concat([textEntered])),
+          commandIndex: -1
+        }, function() {
+          if(this.props.onKeyEnter !== undefined) {
+            this.props.onKeyEnter(textEntered);
+          }
+        });
+      }
+    }
+    render() {
+      const commandContainerStyle = {
+        paddingLeft: "10px"
+      };
+
+      const textInputStyle = {
+        border: "none",
+        outline: "none",
+        paddingLeft: "2px"
+      };
+
+      return (
+        <div id="commandContainer" style={commandContainerStyle}>
+          &gt;<input id="commandText" style={textInputStyle} type="text" onKeyUp={this.onCommandInputKeyUp} autoFocus />
+        </div>
+      );
+    }
+  }
+
   class GameUI extends React.Component {
     constructor() {
       super();
@@ -313,15 +462,15 @@ var CloakOfDarkness = (function() {
         {
           synonyms: ["exits", "ex"],
           func: function(player, system, cmd, args) {
-            var exits = [];
-            _.forEach(_.pluck(player.room.adjacentRooms, "direction"), function(d) {
-              exits.push(_.first(d));
-            });
-
-            if(exits.length > 0) {
-              this.say(`the following exits are available: ${exits.join(', ')}`);
-            }
-
+            // var exits = [];
+            // _.forEach(_.pluck(player.room.adjacentRooms, "direction"), function(d) {
+            //   exits.push(_.first(d));
+            // });
+            //
+            // if(exits.length > 0) {
+            //   this.say(`the following exits are available: ${exits.join(', ')}`);
+            // }
+            //
           }.bind(this)
         },
         {
@@ -351,37 +500,44 @@ var CloakOfDarkness = (function() {
         {
           synonyms: ["look", "l"],
           func: function(player, system, cmd, args) {
-            if(player.room !== {} &&
-               player.room.entryText.length > 0) {
-              this.say(player.room.entryText);
-            }
+            // if(player.room !== {} &&
+            //    player.room.entryText.length > 0) {
+            //   this.say(player.room.entryText);
+            // }
           }.bind(this)
         },
         {
           synonyms: ["examine", "x"],
           func: function(player, system, cmd, args) {
-            if(args.length > 0) {
-              var obj = _.find(player.inventory, function(i) {
-                return i.name === args[0];
-              })
-
-              if(obj !== undefined) {
-                obj.examine(player, system, args);
-              } else {
-                this.say("I cannot examine that object.");
-              }
-            }
+            // if(args.length > 0) {
+            //   var obj = _.find(player.inventory, function(i) {
+            //     return i.name === args[0];
+            //   })
+            //
+            //   if(obj !== undefined) {
+            //     obj.examine(player, system, args);
+            //   } else {
+            //     this.say("I cannot examine that object.");
+            //   }
+            // }
           }.bind(this)
         },
         {
           synonyms: flattenDirectionSynonyms(),
           func: function(player, system, cmd, args) {
-            this.go(cmd);
+            //this.go(cmd);
           }.bind(this)
         }
       ];
 
       var systemCommands = [
+        {
+          synonyms: ["/debug"],
+          func: function(cmd, args) {
+            const json = JSON.stringify(this.state.data, null, 2);
+            this.say(`<h3>Game Data</h3><pre>${syntaxHighlight(json)}</pre>`);
+          }.bind(this)
+        },
         {
           synonyms: ["/clear"],
           func: function(cmd, args) {
@@ -409,31 +565,25 @@ var CloakOfDarkness = (function() {
               "<b>n, north, ne, northeast, nw, northwest, s, south, se, southeast, sw, southwest, e, east, w, west</b> - moves the player to a room relative to the direction specified",
             ];
 
-            this.say("<blockquote>" + help.join("<br/>") + "</blockquote>");
+            this.say(`<blockquote>${help.join('<br/>')}</blockquote>`);
           }.bind(this)
         }
       ];
 
       this.state = {
-        rooms: rooms,
-        objects: [],
         playerCommands: playerCommands,
         systemCommands: systemCommands,
         // minimal player object to satisfy the InfoBar title, room and score
         // properties
-        player: {
-          room: {
-            name: ""
-          },
-          score: "" // this will be changed later
-        }
+        roomName: "",
+        score: 0
       }
     }
     initializePlayer() {
       return {
-        score: "", // this will be changed later
+        score: 0,
         room: {},
-        inventory: initialPlayerInventory
+        inventory: [] // <- will contain the cloak
       }
     }
     scrollContentArea() {
@@ -456,27 +606,27 @@ var CloakOfDarkness = (function() {
       }
     }
     startGame() {
-      var firstRoom = _.findWhere(rooms, { "id": 0 });
-
-      if(firstRoom !== undefined) {
-        var player = this.initializePlayer();
-        player.room = firstRoom;
-
-        this.setState({ player: player }, function() {
-          this.say(gameInfo.description);
-          this.say(`Author: ${gameInfo.author}<br/>Release Date: ${gameInfo.releaseDate}`);
-          this.say("---");
-
-          this.say(player.room.entryText);
-        }.bind(this));
-      }
+      // var firstRoom = _.findWhere(rooms, { "id": 0 });
+      //
+      // if(firstRoom !== undefined) {
+      //   var player = this.initializePlayer();
+      //   player.room = firstRoom;
+      //
+      //   this.setState({ player: player }, function() {
+      //     this.say(gameInfo.description);
+      //     this.say(`Author: ${gameInfo.author}<br/>Release Date: ${gameInfo.releaseDate}`);
+      //     this.say("---");
+      //
+      //     this.say(player.room.entryText);
+      //   }.bind(this));
+      // }
     }
     getCommand(command, found) {
-      var result = {};
+      let result = {};
 
-      var findIn = function(commands, commandType, found) {
+      let findIn = (commands, commandType, found) => {
         if(result !== {}) {
-          _.forEach(commands, function(cmd) {
+          _.forEach(commands, (cmd) => {
             if(_.indexOf(cmd.synonyms, command) > -1) {
               found({
                 commandType: commandType,
@@ -493,63 +643,66 @@ var CloakOfDarkness = (function() {
         result = res;
       };
 
-      findIn(this.state.playerCommands, "player", found);
-      findIn(this.state.player.room.actions, "player", found)
+      console.log(`command = ${command}`);
+
+      // findIn(this.state.playerCommands, "player", found);
+      // findIn(this.state.player.room.actions, "player", found)
       findIn(this.state.systemCommands, "system", found);
 
       return result;
     }
     findAndExecuteTrigger(name) {
-      if(this.state.player.room.triggers !== undefined &&
-         this.state.player.room.triggers.length > 0) {
-        var trigger = _.find(this.state.player.room.triggers, function(t) {
-          return t.name === name;
-        });
-
-        if(trigger !== undefined) {
-          trigger.func(this.state.player, this);
-        }
-      }
+      // if(this.state.player.room.triggers !== undefined &&
+      //    this.state.player.room.triggers.length > 0) {
+      //   var trigger = _.find(this.state.player.room.triggers, function(t) {
+      //     return t.name === name;
+      //   });
+      //
+      //   if(trigger !== undefined) {
+      //     trigger.func(this.state.player, this);
+      //   }
+      // }
     }
     go(direction) {
-      var adjacentRoom = _.filter(this.state.player.room.adjacentRooms, function(r) {
-        return _.indexOf(r.direction, direction) > -1;
-      });
-
-      if(adjacentRoom.length > 0) {
-        var room = _.find(this.state.rooms, { "id": adjacentRoom[0].roomId });
-
-        if(room !== undefined) {
-          this.say("entered: " + room.name);
-
-          this.state.player.room = room;
-
-          this.forceUpdate();
-
-          if(this.state.player.room.entryText !== "") {
-            this.say(this.state.player.room.entryText);
-          }
-
-          this.findAndExecuteTrigger("entry");
-        }
-      } else {
-         this.say("You cannot go in that direction.");
-         this.findAndExecuteTrigger("movement");
-      }
+      // var adjacentRoom = _.filter(this.state.player.room.adjacentRooms, function(r) {
+      //   return _.indexOf(r.direction, direction) > -1;
+      // });
+      //
+      // if(adjacentRoom.length > 0) {
+      //   var room = _.find(this.state.rooms, { "id": adjacentRoom[0].roomId });
+      //
+      //   if(room !== undefined) {
+      //     this.say("entered: " + room.name);
+      //
+      //     this.state.player.room = room;
+      //
+      //     this.forceUpdate();
+      //
+      //     if(this.state.player.room.entryText !== "") {
+      //       this.say(this.state.player.room.entryText);
+      //     }
+      //
+      //     this.findAndExecuteTrigger("entry");
+      //   }
+      // } else {
+      //    this.say("You cannot go in that direction.");
+      //    this.findAndExecuteTrigger("movement");
+      // }
     }
     onCommandEntered(command) {
       this.printCommand(command);
 
-      var split = command.split(" ");
-      var cmd = split[0];
-      var args = split.slice(1);
+      let split = command.split(" ");
+      let cmd = split[0];
+      let args = split.slice(1);
 
-      var cmdObj = this.getCommand(cmd);
+      const cmdObj = this.getCommand(cmd);
 
       if(cmdObj.commandType !== undefined) {
-        if(cmdObj.commandType === "player") {
-          cmdObj.command.func(this.state.player, this.state.systemAPI, cmd, args);
-        } else if (cmdObj.commandType === "system") {
+        //if(cmdObj.commandType === "player") {
+        //  cmdObj.command.func(this.state.player, this.state.systemAPI, cmd, args);
+        //} else
+        if (cmdObj.commandType === "system") {
           cmdObj.command.func(cmd, args);
         }
       }
@@ -559,14 +712,15 @@ var CloakOfDarkness = (function() {
     componentDidMount() {
       this.setState({
         content: $("#content"),
-        player: this.initializePlayer(),
-        systemAPI: {
+        data: this.props.data,
+        player: this.initializePlayer()//,
+        //systemAPI: {
           // Just one function here so far, if anything else is needed to be
           // called from the rooms or objects then it'll be put in here.
-          say: function(text, newLine) {
-            this.say(text, newLine);
-          }.bind(this)
-        }
+          //say: function(text, newLine) {
+          //  this.say(text, newLine);
+          //}.bind(this)
+        //}
       }, function() {
         this.startGame();
       });
@@ -574,14 +728,14 @@ var CloakOfDarkness = (function() {
     render() {
       const contentStyle = {
         marginTop: "50px",
-        padding: "10px"
+        marginLeft: "10px"
       };
 
       return (
         <div>
           <InfoBar title={gameInfo.title}
-                   room={this.state.player.room.name}
-                   score={this.state.player.score} />
+                   room={this.state.roomName}
+                   score={this.state.score} />
           <div id="content" style={contentStyle}></div>
           <CommandInput onKeyEnter={this.onCommandEntered} />
         </div>
@@ -591,7 +745,27 @@ var CloakOfDarkness = (function() {
 
   return {
     init: function() {
-      ReactDOM.render(<GameUI />, document.getElementById("ui"));
+      let dl = new DataLoader();
+
+      dl.load("/assets/data/cloak-of-darkness-data.txt",
+        (status) => { console.log(status); },
+        (data) => {
+          const dataParts = data.split("\n\r");
+          //console.log(`Total chunks = ${dataParts.length}`);
+
+          let gdata = {};
+
+          _.forEach(dataParts, (dp) => {
+            const result = dl.read(dp);
+            gdata[result.name] = result.data;
+          });
+
+          // console.log("---game data loaded---");
+          // console.log(gdata);
+          // console.log("----------------------");
+
+          ReactDOM.render(<GameUI data={gdata} />, document.getElementById("ui"));
+        });
     }
   }
 })();
