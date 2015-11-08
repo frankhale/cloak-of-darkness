@@ -7,6 +7,11 @@ Here is a source for a definition / requirements for a Cloak Of Darkness like cl
 
 http://www.firthworks.com/roger/cloak/
 
+##Status
+
+**This is the overhaul branch and is not complete yet. The game is not yet
+working in this branch.**
+
 ##Screenshot
 
 ![Game user interface screenshot](screenshots/game.png)
@@ -46,14 +51,6 @@ the index.html page will open in your browser.
 live-server
 ```
 
-##Status
-
-Should be able to play through the game.
-
-Note:
-
-- Parser is very crude for performing actions right now. 
-
 ##Walkthrough
 
 You only need to make 5 moves to win the game.
@@ -83,4 +80,4 @@ read message
 ###Author(s):
 
 Frank Hale &lt;frankhale@gmail.com&gt;  
-30 October 2015
+8 November 2015
