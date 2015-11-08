@@ -15,7 +15,7 @@ var CloakOfDarkness = (function () {
     title: "Cloak of Darkness",
     description: "Welcome, Cloak of Darkness is an implementation of the de facto 'Hello, World' of interactive  fiction by the same name. If you want to find out what a 'Cloak of Darkness' is you can find out more <a href='http://www.firthworks.com/roger/cloak' target='_blank'>here</a>.",
     author: "Frank Hale <frankhale@gmail.com>",
-    releaseDate: "7 November 2015"
+    releaseDate: "8 November 2015"
   };
 
   var keys = {
@@ -158,7 +158,7 @@ var CloakOfDarkness = (function () {
 
           _.forEach(groups, function (g) {
             var item = {
-              name: g.group.shift()
+              name: g.group.shift().trim()
             };
 
             g.group.map(function (ig) {
@@ -325,6 +325,8 @@ var CloakOfDarkness = (function () {
               return data.split(",").map(function (n) {
                 return Number(n);
               });
+            } else if (gName === "description" || gName === "age") {
+              return Number(data);
             }
           });
         };
@@ -458,6 +460,12 @@ var CloakOfDarkness = (function () {
         // width of the window.
         var $commandText = $("#commandText");
 
+        // this may need to be changed later if I have more rich UI's but basically
+        // this will make sure the command input is always focused, hopefully.
+        // $(commandText).on("blur", () => {
+        //   $commandText.focus();
+        // });
+
         this.setState({ commandText: $commandText });
 
         function resizeCommandInput() {
@@ -567,30 +575,31 @@ var CloakOfDarkness = (function () {
           // if(exits.length > 0) {
           //   this.say(`the following exits are available: ${exits.join(', ')}`);
           // }
-          //
+          this.say(cmd + " has not yet been implemented.");
         }).bind(_this4)
       }, {
         synonyms: ["inventory", "i"],
         func: (function (player, system, cmd, args) {
-          if (player.inventory.length > 0) {
-            _.forEach(player.inventory, (function (i) {
-              var modifier = "";
-
-              if (i.type.name === "garment") {
-                if (i.type.worn) {
-                  modifier = "is";
-                } else {
-                  modifier = "is not";
-                }
-
-                this.say(i.name + " (which " + modifier + " being worn)");
-              } else {
-                this.say(i.name);
-              }
-            }).bind(this));
-          } else {
-            this.say("Your inventory contains no items.<br/>");
-          }
+          // if(player.inventory.length > 0) {
+          //   _.forEach(player.inventory, function(i) {
+          //     var modifier = "";
+          //
+          //     if(i.type.name === "garment") {
+          //       if(i.type.worn) {
+          //         modifier = "is";
+          //       } else {
+          //         modifier = "is not";
+          //       }
+          //
+          //       this.say(i.name + " (which " + modifier + " being worn)");
+          //     } else {
+          //       this.say(i.name);
+          //     }
+          //   }.bind(this));
+          // } else {
+          //   this.say("Your inventory contains no items.<br/>");
+          // }
+          this.say(cmd + " has not yet been implemented.");
         }).bind(_this4)
       }, {
         synonyms: ["look", "l"],
@@ -599,30 +608,109 @@ var CloakOfDarkness = (function () {
           //    player.room.entryText.length > 0) {
           //   this.say(player.room.entryText);
           // }
+          this.say(cmd + " has not yet been implemented.");
         }).bind(_this4)
       }, {
         synonyms: ["examine", "x"],
         func: (function (player, system, cmd, args) {
-          // if(args.length > 0) {
-          //   var obj = _.find(player.inventory, function(i) {
-          //     return i.name === args[0];
-          //   })
-          //
-          //   if(obj !== undefined) {
-          //     obj.examine(player, system, args);
-          //   } else {
-          //     this.say("I cannot examine that object.");
-          //   }
-          // }
+          if (args.length > 0) {
+            // var obj = _.find(player.inventory, function(i) {
+            //   return i.name === args[0];
+            // })
+            //
+            // if(obj !== undefined) {
+            //   obj.examine(player, system, args);
+            // } else {
+            //   this.say("I cannot examine that object.");
+            // }
+
+            if (args[0].toLowerCase() === "self" || args[0].toLowerCase() === "me") {
+              var self = _.find(this.state.data.player, { "name": "self" });
+
+              if (self !== undefined) {
+                var desc = _.find(this.state.data.text, { "id": self.description });
+                console.log(self, desc);
+                this.say(desc.text);
+              }
+            } else {
+              this.say("I don't know what that is.");
+            }
+          } else {
+            this.say("usage: x|examine [something]");
+          }
         }).bind(_this4)
       }, {
         synonyms: flattenDirectionSynonyms(),
         func: (function (player, system, cmd, args) {
           //this.go(cmd);
+          this.say("movement directions are not yet implemented.");
         }).bind(_this4)
       }];
 
       var systemCommands = [{
+        synonyms: ["/save"],
+        func: (function (cmd, args) {
+          //this.say("not yet implemented.");
+
+          var json = JSON.stringify(this.state.player, null, 2);
+          this.say("<h3>Player Data</h3><pre>" + syntaxHighlight(json) + "</pre>");
+          this.say("<h3>Encoded</h3>" + btoa(JSON.stringify(this.state.player, null, 2)));
+        }).bind(_this4)
+      }, {
+        synonyms: ["/restore"],
+        func: (function (cmd, args) {
+          var _this5 = this;
+
+          //this.say("not yet implemented.");
+          //console.log(atob("ewogICJzY29yZSI6IDAsCiAgInJvb20iOiB7fSwKICAiaW52ZW50b3J5IjogW10KfQ=="));
+
+          if (args.length > 0) {
+            try {
+              (function () {
+                var restoredJSON = JSON.parse(atob(args[0]));
+                _this5.say("<h3>Restored Player Data</h3><pre>" + syntaxHighlight(restoredJSON) + "</pre>");
+                _this5.say("Restoring player save data.");
+
+                // need to check the properties on the player object because we
+                // don't want to restore some arbitary JSON object and then overwrite
+                // the player object.
+
+                var canRestore = [];
+                var props = ["score", "rooms", "inventory"];
+
+                props.map(function (p) {
+                  canRestore.push(true);
+                });
+                canRestore = _.find(canRestore, false);
+
+                if (canRestore === undefined) {
+                  canRestore = true;
+                }
+
+                if (canRestore) {
+                  _this5.setState({
+                    player: restoredJSON
+                  }, (function () {
+                    this.say("Finished restoring player save data.");
+                  }).bind(_this5));
+                } else {
+                  _this5.say("I cannot restore this save data.");
+                }
+              })();
+            } catch (e) {
+              console.log(e);
+              this.say("Sorry I cannot restore your game.");
+            }
+          } else {
+            this.say("usage: /restore [encoded string]");
+          }
+        }).bind(_this4)
+      }, {
+        synonyms: ["/undo"],
+        func: (function (cmd, args) {
+          this.say("not yet implemented.");
+        }).bind(_this4)
+      }, {
         synonyms: ["/debug"],
         func: (function (cmd, args) {
           var json = JSON.stringify(this.state.data, null, 2);
@@ -642,7 +730,7 @@ var CloakOfDarkness = (function () {
       }, {
         synonyms: ["help", "h"],
         func: (function (cmd, args) {
-          var help = ["<b>/clear</b> - clears the screen", "<b>/restart</b> - restarts the game", "<b>h, help</b> - prints this message", "<b>i, inventory</b> - prints your inventory", "<b>l, look</b> - prints the description of the current room", "<b>x, examine</b> - prints a detailed description of an object", "<b>ex, exits</b> - prints the list of exits for this room", "<b>n, north, ne, northeast, nw, northwest, s, south, se, southeast, sw, southwest, e, east, w, west</b> - moves the player to a room relative to the direction specified"];
+          var help = ["<b>/save</b> - prints an encoded string you can use to restore your game.", "<b>/restore [encoded string] - restores a previous game.</b>", "<b>/clear</b> - clears the screen", "<b>/restart</b> - restarts the game", "<b>h, help</b> - prints this message", "<b>i, inventory</b> - prints your inventory", "<b>l, look</b> - prints the description of the current room", "<b>x, examine</b> - prints a detailed description of an object", "<b>ex, exits</b> - prints the list of exits for this room", "<b>n, north, ne, northeast, nw, northwest, s, south, se, southeast, sw, southwest, e, east, w, west</b> - moves the player to a room relative to the direction specified"];
 
           this.say("<blockquote>" + help.join('<br/>') + "</blockquote>");
         }).bind(_this4)
@@ -717,13 +805,18 @@ var CloakOfDarkness = (function () {
       }
     }, {
       key: "getCommand",
-      value: function getCommand(command, found) {
+      value: function getCommand(command) {
         var result = {};
-
+        var foundCommand = false;
+        var found = function found(res) {
+          result = res;
+        };
         var findIn = function findIn(commands, commandType, found) {
           if (result !== {}) {
             _.forEach(commands, function (cmd) {
               if (_.indexOf(cmd.synonyms, command) > -1) {
+                foundCommand = true;
+
                 found({
                   commandType: commandType,
                   command: cmd
@@ -735,57 +828,58 @@ var CloakOfDarkness = (function () {
           }
         };
 
-        var found = function found(res) {
-          result = res;
-        };
-
-        console.log("command = " + command);
-
-        // findIn(this.state.playerCommands, "player", found);
-        // findIn(this.state.player.room.actions, "player", found)
         findIn(this.state.systemCommands, "system", found);
+        findIn(this.state.playerCommands, "player", found);
+        // findIn(this.state.player.room.actions, "player", found)
+
+        if (!foundCommand) {
+          this.say("I don't understand: " + command);
+        }
 
         return result;
       }
-      //findAndExecuteTrigger(name) {
-      // if(this.state.player.room.triggers !== undefined &&
-      //    this.state.player.room.triggers.length > 0) {
-      //   var trigger = _.find(this.state.player.room.triggers, function(t) {
-      //     return t.name === name;
-      //   });
-      //
-      //   if(trigger !== undefined) {
-      //     trigger.func(this.state.player, this);
-      //   }
-      // }
-      //}
-      //go(direction) {
-      // var adjacentRoom = _.filter(this.state.player.room.adjacentRooms, function(r) {
-      //   return _.indexOf(r.direction, direction) > -1;
-      // });
-      //
-      // if(adjacentRoom.length > 0) {
-      //   var room = _.find(this.state.rooms, { "id": adjacentRoom[0].roomId });
-      //
-      //   if(room !== undefined) {
-      //     this.say("entered: " + room.name);
-      //
-      //     this.state.player.room = room;
-      //
-      //     this.forceUpdate();
-      //
-      //     if(this.state.player.room.entryText !== "") {
-      //       this.say(this.state.player.room.entryText);
-      //     }
-      //
-      //     this.findAndExecuteTrigger("entry");
-      //   }
-      // } else {
-      //    this.say("You cannot go in that direction.");
-      //    this.findAndExecuteTrigger("movement");
-      // }
-      //}
-
+    }, {
+      key: "findAndExecuteTrigger",
+      value: function findAndExecuteTrigger(name) {
+        // if(this.state.player.room.triggers !== undefined &&
+        //    this.state.player.room.triggers.length > 0) {
+        //   var trigger = _.find(this.state.player.room.triggers, function(t) {
+        //     return t.name === name;
+        //   });
+        //
+        //   if(trigger !== undefined) {
+        //     trigger.func(this.state.player, this);
+        //   }
+        // }
+      }
+    }, {
+      key: "go",
+      value: function go(direction) {
+        // var adjacentRoom = _.filter(this.state.player.room.adjacentRooms, function(r) {
+        //   return _.indexOf(r.direction, direction) > -1;
+        // });
+        //
+        // if(adjacentRoom.length > 0) {
+        //   var room = _.find(this.state.rooms, { "id": adjacentRoom[0].roomId });
+        //
+        //   if(room !== undefined) {
+        //     this.say("entered: " + room.name);
+        //
+        //     this.state.player.room = room;
+        //
+        //     this.forceUpdate();
+        //
+        //     if(this.state.player.room.entryText !== "") {
+        //       this.say(this.state.player.room.entryText);
+        //     }
+        //
+        //     this.findAndExecuteTrigger("entry");
+        //   }
+        // } else {
+        //    this.say("You cannot go in that direction.");
+        //    this.findAndExecuteTrigger("movement");
+        // }
+      }
     }, {
       key: "onCommandEntered",
       value: function onCommandEntered(command) {
@@ -798,10 +892,9 @@ var CloakOfDarkness = (function () {
         var cmdObj = this.getCommand(cmd);
 
         if (cmdObj.commandType !== undefined) {
-          //if(cmdObj.commandType === "player") {
-          //  cmdObj.command.func(this.state.player, this.state.systemAPI, cmd, args);
-          //} else
-          if (cmdObj.commandType === "system") {
+          if (cmdObj.commandType === "player") {
+            cmdObj.command.func(this.state.player, this.state.systemAPI, cmd, args);
+          } else if (cmdObj.commandType === "system") {
             cmdObj.command.func(cmd, args);
           }
         }
@@ -814,14 +907,14 @@ var CloakOfDarkness = (function () {
         this.setState({
           content: $("#content"),
           data: this.props.data,
-          player: this.initializePlayer() //,
-          //systemAPI: {
-          // Just one function here so far, if anything else is needed to be
-          // called from the rooms or objects then it'll be put in here.
-          //say: function(text, newLine) {
-          //  this.say(text, newLine);
-          //}.bind(this)
-          //}
+          player: this.initializePlayer(),
+          systemAPI: {
+            // Just one function here so far, if anything else is needed to be
+            // called from the rooms or objects then it'll be put in here.
+            say: (function (text, newLine) {
+              this.say(text, newLine);
+            }).bind(this)
+          }
         }, function () {
           this.startGame();
         });

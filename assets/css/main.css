@@ -14,6 +14,8 @@ pre {
   border-left: 4px solid black;
   background-color: #eee;
   white-space: pre-wrap;
+  margin-left: 40px !important;
+  margin-right: 40px !important;
 }
 blockquote {
   border-left: 4px solid black;

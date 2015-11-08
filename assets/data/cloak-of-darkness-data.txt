@@ -23,6 +23,9 @@ text
 14 available light shedding darkness on objects around you.
 15 A message has been created on the floor that consists of what looks like
 15 sand.
+16 You are a handsome dapper man approximately 6 feet tall with a medium build.
+16 You smirk to yourself as you think about it, you are feel ready to conquer
+16 the world.
 
 synonyms
 1 cloak, dark cloak, velvet cloak, jacket, overcoat
@@ -74,3 +77,6 @@ exits
 player
 1 inventory
 1 items: 1
+2 self
+2 age: 40
+2 description: 16
