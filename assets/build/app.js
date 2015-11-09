@@ -15,7 +15,8 @@ var CloakOfDarkness = (function () {
     title: "Cloak of Darkness",
     description: "Welcome, Cloak of Darkness is an implementation of the de facto 'Hello, World' of interactive  fiction by the same name. If you want to find out what a 'Cloak of Darkness' is you can find out more <a href='http://www.firthworks.com/roger/cloak' target='_blank'>here</a>.",
     author: "Frank Hale <frankhale@gmail.com>",
-    releaseDate: "8 November 2015"
+    releaseDate: "8 November 2015",
+    dataFile: "/assets/data/cloak-of-darkness-data.txt"
   };
 
   var keys = {
@@ -157,7 +158,11 @@ var CloakOfDarkness = (function () {
           var groups = getGroupedLines(data);
 
           _.forEach(groups, function (g) {
+
+            //console.log(g);
+
             var item = {
+              id: g.id,
               name: g.group.shift().trim()
             };
 
@@ -325,7 +330,7 @@ var CloakOfDarkness = (function () {
               return data.split(",").map(function (n) {
                 return Number(n);
               });
-            } else if (gName === "description" || gName === "age") {
+            } else if (gName === "description" || gName === "age" || gName === "startRoom") {
               return Number(data);
             }
           });
@@ -629,7 +634,7 @@ var CloakOfDarkness = (function () {
 
               if (self !== undefined) {
                 var desc = _.find(this.state.data.text, { "id": self.description });
-                console.log(self, desc);
+                //console.log(self, desc);
                 this.say(desc.text);
               }
             } else {
@@ -642,8 +647,7 @@ var CloakOfDarkness = (function () {
       }, {
         synonyms: flattenDirectionSynonyms(),
         func: (function (player, system, cmd, args) {
-          //this.go(cmd);
-          this.say("movement directions are not yet implemented.");
+          this.go(cmd);
         }).bind(_this4)
       }];
 
@@ -698,7 +702,7 @@ var CloakOfDarkness = (function () {
                 }
               })();
             } catch (e) {
-              console.log(e);
+              //console.log(e);
               this.say("Sorry I cannot restore your game.");
             }
           } else {
@@ -786,22 +790,72 @@ var CloakOfDarkness = (function () {
         }
       }
     }, {
+      key: "getSynonyms",
+      value: function getSynonyms(id) {
+        var synonyms = _.find(this.state.data.synonyms, { "id": id });
+        if (synonyms !== undefined) {
+          return synonyms.words;
+        } else {
+          return [];
+        }
+      }
+    }, {
+      key: "getText",
+      value: function getText(id) {
+        var text = _.find(this.state.data.text, { "id": id });
+        if (text !== undefined) {
+          return text;
+        } else {
+          return [];
+        }
+      }
+    }, {
+      key: "getRoom",
+      value: function getRoom(id) {
+        var _this6 = this;
+
+        var room = _.find(this.state.data.rooms, { "id": id });
+
+        if (room !== undefined) {
+          return {
+            // 1 Opera House Foyer
+            // 1 synonyms: 5
+            // 1 text: 1
+            id: id,
+            name: room.name,
+            synonyms: _.uniq(_.flatten(room.synonyms.map(function (s) {
+              return _this6.getSynonyms(s);
+            }))),
+            text: room.text.map(function (t) {
+              return _this6.getText(t);
+            })
+          };
+        }
+      }
+    }, {
       key: "startGame",
       value: function startGame() {
-        // var firstRoom = _.findWhere(rooms, { "id": 0 });
-        //
-        // if(firstRoom !== undefined) {
-        //   var player = this.initializePlayer();
-        //   player.room = firstRoom;
-        //
-        //   this.setState({ player: player }, function() {
-        //     this.say(gameInfo.description);
-        //     this.say(`Author: ${gameInfo.author}<br/>Release Date: ${gameInfo.releaseDate}`);
-        //     this.say("---");
-        //
-        //     this.say(player.room.entryText);
-        //   }.bind(this));
-        // }
+        var misc = _.find(this.state.data.player, { "name": "misc" });
+        var startingRoom = this.getRoom(misc.startRoom);
+
+        //console.log(misc);
+        //console.log(startingRoom);
+
+        if (startingRoom !== undefined) {
+          var player = this.initializePlayer();
+          player.room = startingRoom;
+
+          this.setState({
+            player: player,
+            roomName: player.room.name
+          }, (function () {
+            this.say(gameInfo.description);
+            this.say("Author: " + gameInfo.author + "<br/>Release Date: " + gameInfo.releaseDate);
+            this.say("---");
+
+            this.say(startingRoom.text[0].text);
+          }).bind(this));
+        }
       }
     }, {
       key: "getCommand",
@@ -855,6 +909,8 @@ var CloakOfDarkness = (function () {
     }, {
       key: "go",
       value: function go(direction) {
+        this.say(direction + " is not implemented yet.");
+
         // var adjacentRoom = _.filter(this.state.player.room.adjacentRooms, function(r) {
         //   return _.indexOf(r.direction, direction) > -1;
         // });
@@ -946,7 +1002,7 @@ var CloakOfDarkness = (function () {
     init: function init() {
       var dl = new DataLoader();
 
-      dl.load("/assets/data/cloak-of-darkness-data.txt", function (status) {
+      dl.load(gameInfo.dataFile, function (status) {
         console.log(status);
       }, function (data) {
         var dataParts = data.split("\n\r");
