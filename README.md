@@ -9,8 +9,8 @@ http://www.firthworks.com/roger/cloak/
 
 ##Status
 
-**This is the overhaul branch and is not complete yet. The game is not yet
-working in this branch.**
+**This is the overhaul branch and is not complete yet. Things may or may not
+be in a state of brokeness!!!**
 
 ##Screenshot
 

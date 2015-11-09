@@ -708,6 +708,12 @@ const CloakOfDarkness = (function() {
         return [];
       }
     }
+    getExits(id) {
+      const exits = _.find(this.state.data.exits, { "id" : id });
+      if(exits !== undefined) {
+        return exits.rooms;
+      }
+    }
     getText(id) {
       const text = _.find(this.state.data.text, { "id" : id });
       if(text !== undefined) {
@@ -721,13 +727,11 @@ const CloakOfDarkness = (function() {
 
       if(room !== undefined) {
         return {
-          // 1 Opera House Foyer
-          // 1 synonyms: 5
-          // 1 text: 1
           id: id,
           name: room.name,
           synonyms: _.uniq(_.flatten(room.synonyms.map((s) => { return this.getSynonyms(s); }))),
-          text: room.text.map((t) => { return this.getText(t); })
+          text: room.text.map((t) => { return this.getText(t); }),
+          exits: this.getExits(id)
         };
       }
     }
@@ -798,32 +802,53 @@ const CloakOfDarkness = (function() {
       // }
     }
     go(direction) {
-      this.say(`${direction} is not implemented yet.`);
+      // The room exits are an array and the following indices correspond to the
+      // following directions.
 
-      // var adjacentRoom = _.filter(this.state.player.room.adjacentRooms, function(r) {
-      //   return _.indexOf(r.direction, direction) > -1;
-      // });
-      //
-      // if(adjacentRoom.length > 0) {
-      //   var room = _.find(this.state.rooms, { "id": adjacentRoom[0].roomId });
-      //
-      //   if(room !== undefined) {
-      //     this.say("entered: " + room.name);
-      //
-      //     this.state.player.room = room;
-      //
-      //     this.forceUpdate();
-      //
-      //     if(this.state.player.room.entryText !== "") {
-      //       this.say(this.state.player.room.entryText);
-      //     }
-      //
-      //     this.findAndExecuteTrigger("entry");
-      //   }
-      // } else {
-      //    this.say("You cannot go in that direction.");
-      //    this.findAndExecuteTrigger("movement");
-      // }
+      // 0: north: ["north", "n"]
+      // 1: northEast: ["northeast", "ne"]
+      // 2: northWest: ["northwest", "nw"]
+      // 3: south: ["south", "s"]
+      // 4: southEast: ["southeast", "se"]
+      // 5: southWest: ["southwest", "sw"]
+      // 6: east: ["east", "e"]
+      // 7: west: ["west", "w"]
+
+      var dirName = _.findKey(directionSynonyms, (ds) => {
+        return ds.indexOf(direction) > -1;
+      });
+
+      if(dirName !== undefined) {
+        //console.log(`Direction: ${dirName}`);
+        let index = 0;
+
+        for(let p in directionSynonyms) {
+          if(p === dirName) {
+            break;
+          }
+          index++;
+        }
+
+        //console.log(`index = ${index} | directionSynonyms = ${directionSynonyms[dirName]}`);
+
+        let newRoom = this.getRoom(this.state.player.room.exits[index]);
+
+        if(newRoom !== undefined) {
+          //console.log(newRoom);
+          this.state.player.room = newRoom;
+
+          this.setState({
+            roomName: this.state.player.room.name
+          }, () => {
+            this.say("Entered: " + newRoom.name);
+            this.say(this.state.player.room.text[0].text);
+            //this.findAndExecuteTrigger("entry");
+          });
+        } else {
+          this.say("I cannot go in that direction.");
+          //this.findAndExecuteTrigger("movement");
+        }
+      }
     }
     onCommandEntered(command) {
       this.printCommand(command);
