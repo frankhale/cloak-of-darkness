@@ -43,7 +43,7 @@ const CloakOfDarkness = (function() {
       }
       json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-          var cls = 'number';
+          let cls = 'number';
           if (/^"/.test(match)) {
               if (/:$/.test(match)) {
                   cls = 'key';
@@ -477,15 +477,33 @@ const CloakOfDarkness = (function() {
         {
           synonyms: ["exits", "ex"],
           func: function(player, system, cmd, args) {
-            // var exits = [];
-            // _.forEach(_.pluck(player.room.adjacentRooms, "direction"), function(d) {
-            //   exits.push(_.first(d));
-            // });
-            //
-            // if(exits.length > 0) {
-            //   this.say(`the following exits are available: ${exits.join(', ')}`);
-            // }
-            this.say(`${cmd} has not yet been implemented.`);
+            let exits = [];
+            let indices = [];
+
+            //console.log(player.room.exits);
+
+            for(var i=0; i < player.room.exits.length; i++) {
+              if(player.room.exits[i] !== 0) {
+                indices.push(i);
+              }
+            }
+
+            //console.log(indices);
+
+            indices.map((i) => {
+              let counter = 0;
+              for(let d in directionSynonyms) {
+                if(counter === i) {
+                  exits.push(d);
+                  return;
+                }
+                counter++;
+              }
+            });
+
+            if(exits.length > 0) {
+              this.say(`the following exits are available: ${exits.join(', ')}`);
+            }
           }.bind(this)
         },
         {
@@ -516,27 +534,15 @@ const CloakOfDarkness = (function() {
         {
           synonyms: ["look", "l"],
           func: function(player, system, cmd, args) {
-            // if(player.room !== {} &&
-            //    player.room.entryText.length > 0) {
-            //   this.say(player.room.entryText);
-            // }
-            this.say(`${cmd} has not yet been implemented.`);
+            if(player.room !== undefined) {
+              this.say(player.room.text[0].text);
+            }
           }.bind(this)
         },
         {
           synonyms: ["examine", "x"],
           func: function(player, system, cmd, args) {
             if(args.length > 0) {
-              // var obj = _.find(player.inventory, function(i) {
-              //   return i.name === args[0];
-              // })
-              //
-              // if(obj !== undefined) {
-              //   obj.examine(player, system, args);
-              // } else {
-              //   this.say("I cannot examine that object.");
-              // }
-
               if(args[0].toLowerCase() === "self" ||
                  args[0].toLowerCase() === "me") {
                 const self = _.find(this.state.data.player, { "name" :"self" });
@@ -547,6 +553,9 @@ const CloakOfDarkness = (function() {
                   this.say(desc.text);
                 }
               } else {
+                //TODO: We need to provide a way to get an object description
+                //      here...
+
                 this.say("I don't know what that is.");
               }
             } else {
@@ -627,8 +636,17 @@ const CloakOfDarkness = (function() {
         {
           synonyms: ["/debug"],
           func: function(cmd, args) {
-            const json = JSON.stringify(this.state.data, null, 2);
-            this.say(`<h3>Game Data</h3><pre>${syntaxHighlight(json)}</pre>`);
+            let json = "";
+
+            if(args.length > 0 && this.state.data.hasOwnProperty(args[0])) {
+              json = JSON.stringify(this.state.data[args[0]], null, 2);
+              this.say(`<h3>Game Data - ${args[0]}</h3>`);
+            } else {
+              json = JSON.stringify(this.state.data, null, 2);
+              this.say("<h3>Game Data - All</h3>");
+            }
+
+            this.say(`<pre>${syntaxHighlight(json)}</pre>`);
           }.bind(this)
         },
         {
@@ -647,20 +665,21 @@ const CloakOfDarkness = (function() {
         {
           synonyms: ["help","h"],
           func: function(cmd, args) {
-            var help = [
+            const help = [
+              "<b>/debug [key]</b> - prints the game data object for debugging purposes.",
               "<b>/save</b> - prints an encoded string you can use to restore your game.",
-              "<b>/restore [encoded string] - restores a previous game.</b>",
+              "<b>/restore &lt;encoded string&gt;</b> - restores a previous game.",
               "<b>/clear</b> - clears the screen",
               "<b>/restart</b> - restarts the game",
               "<b>h, help</b> - prints this message",
               "<b>i, inventory</b> - prints your inventory",
               "<b>l, look</b> - prints the description of the current room",
-              "<b>x, examine</b> - prints a detailed description of an object",
+              "<b>x, examine &lt;object&gt;</b> - prints a detailed description of an object",
               "<b>ex, exits</b> - prints the list of exits for this room",
               "<b>n, north, ne, northeast, nw, northwest, s, south, se, southeast, sw, southwest, e, east, w, west</b> - moves the player to a room relative to the direction specified",
             ];
 
-            this.say(`<blockquote>${help.join('<br/>')}</blockquote>`);
+            this.say(`<h3>Help:</h3><blockquote>${help.join('<br/>')}</blockquote>`);
           }.bind(this)
         }
       ];
@@ -713,6 +732,15 @@ const CloakOfDarkness = (function() {
       if(exits !== undefined) {
         return exits.rooms;
       }
+    }
+    getActions(id) {
+      // not implemented yet
+    }
+    getTriggers(id) {
+      // not implemented yet
+    }
+    getObjects(id) {
+      // not implemented yet
     }
     getText(id) {
       const text = _.find(this.state.data.text, { "id" : id });
