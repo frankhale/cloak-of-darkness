@@ -62,7 +62,7 @@ live-server
 
 ##Data File Format
 
-See file ![cloak-of-darkness-data.txt](assets/data/cloak-of-darkness-data.txt)
+See file [cloak-of-darkness-data.txt](assets/data/cloak-of-darkness-data.txt)
 for a complete example of how the current version of the data file format works.
 
 Basically the format works like this, allow the story teller to tell the story
@@ -79,7 +79,7 @@ In the 'text' section all of the game text will be stored. The numbers on the
 left are an index which will be used to create an 'id' for the data structure
 the data loader creates so that various pieces of text can be easily referenced
 by the game code. Lines with the same index will be concatenated, this makes it
-easy to force a line wrap in your data file. For instance ![cloak-of-darkness-data.txt](assets/data/cloak-of-darkness-data.txt) is wrapped
+easy to force a line wrap in your data file. For instance [cloak-of-darkness-data.txt](assets/data/cloak-of-darkness-data.txt) is wrapped
 at 80 lines.
 
 ```
@@ -144,7 +144,7 @@ exits
 ```
 
 Here is a comment lifted from the source code which details the positions in the
-exits array and their meaning. The words in brakets are the synonyms for the
+exits array and their meaning. The words in brackets are the synonyms for the
 direction.
 
 ```
