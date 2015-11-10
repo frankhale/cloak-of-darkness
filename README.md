@@ -80,4 +80,8 @@ read message
 ###Author(s):
 
 Frank Hale &lt;frankhale@gmail.com&gt;  
-8 November 2015
+9 November 2015
+
+## License
+
+GNU GPL v2 or later version - see [LICENSE](LICENSE) 
