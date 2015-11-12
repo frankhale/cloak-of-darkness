@@ -28,7 +28,8 @@ text
 16 world.
 17 A wooden table stands tall in the corner of the room. On top of the table
 17 sits a flower vase containing a sprawling green leafy plant. Its leaves
-17 extend past the edges of the table causing them to overhang.
+17 extend past the edges of the table causing them to overhang. You can't help
+17 but think that the plant has been neglected.
 18 The flower is a sprawling green leafy plant. Its leaves extend past the edges
 18 of the table causing them to overhang.
 
@@ -55,6 +56,7 @@ rooms
 actions
 1 hang
 1 synonyms: 2
+1 what: 1
 1 text: 4
 2 read
 2 synonyms: 3

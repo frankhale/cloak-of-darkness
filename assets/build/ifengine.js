@@ -10,15 +10,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var CloakOfDarkness = (function () {
-  var gameInfo = {
-    title: "Cloak of Darkness",
-    description: "Welcome, Cloak of Darkness is an implementation of the de facto 'Hello, World' of interactive  fiction by the same name. If you want to find out what a 'Cloak of Darkness' is you can find out more <a href='http://www.firthworks.com/roger/cloak' target='_blank'>here</a>.",
-    author: "Frank Hale <frankhale@gmail.com>",
-    releaseDate: "8 November 2015",
-    dataFile: "/assets/data/cloak-of-darkness-data.txt"
-  };
-
+var IFEngine = (function () {
   var keys = {
     Enter: 13,
     Up: 38,
@@ -313,6 +305,10 @@ var CloakOfDarkness = (function () {
           });
         };
 
+        var readScenery = function readScenery(data) {
+          return getStructuredObject(data);
+        };
+
         var readExits = function readExits(data) {
           return readNumberedLines(data).map(function (e) {
             return {
@@ -357,6 +353,8 @@ var CloakOfDarkness = (function () {
           result.data = readTriggers(lines);
         } else if (name === "objects") {
           result.data = readObjects(lines);
+        } else if (name === "scenery") {
+          result.data = readScenery(lines);
         } else if (name === "exits") {
           result.data = readExits(lines);
         } else if (name === "player") {
@@ -661,6 +659,11 @@ var CloakOfDarkness = (function () {
       }];
 
       var systemCommands = [{
+        synonyms: ["/banner"],
+        func: (function (cmd, args) {
+          this.printBanner();
+        }).bind(_this4)
+      }, {
         synonyms: ["/save"],
         func: (function (cmd, args) {
           //this.say("not yet implemented.");
@@ -752,7 +755,7 @@ var CloakOfDarkness = (function () {
       }, {
         synonyms: ["help", "h"],
         func: (function (cmd, args) {
-          var help = ["<b>/debug [key]</b> - prints the game data object for debugging purposes.", "<b>/save</b> - prints an encoded string you can use to restore your game.", "<b>/restore &lt;encoded string&gt;</b> - restores a previous game.", "<b>/clear</b> - clears the screen", "<b>/restart</b> - restarts the game", "<b>h, help</b> - prints this message", "<b>i, inventory</b> - prints your inventory", "<b>l, look</b> - prints the description of the current room", "<b>x, examine &lt;object&gt;</b> - prints a detailed description of an object", "<b>ex, exits</b> - prints the list of exits for this room", "<b>n, north, ne, northeast, nw, northwest, s, south, se, southeast, sw, southwest, e, east, w, west</b> - moves the player to a room relative to the direction specified"];
+          var help = ["<b>/banner</b> - prints the game title, description and author.", "<b>/debug [key]</b> - prints the game data object for debugging purposes.", "<b>/save</b> - prints an encoded string you can use to restore your game.", "<b>/restore &lt;encoded string&gt;</b> - restores a previous game.", "<b>/clear</b> - clears the screen", "<b>/restart</b> - restarts the game", "<b>h, help</b> - prints this message", "<b>i, inventory</b> - prints your inventory", "<b>l, look</b> - prints the description of the current room", "<b>x, examine &lt;object&gt;</b> - prints a detailed description of an object", "<b>ex, exits</b> - prints the list of exits for this room", "<b>n, north, ne, northeast, nw, northwest, s, south, se, southeast, sw, southwest, e, east, w, west</b> - moves the player to a room relative to the direction specified"];
 
           this.say("<h3>Help:</h3><blockquote>" + help.join('<br/>') + "</blockquote>");
         }).bind(_this4)
@@ -792,6 +795,13 @@ var CloakOfDarkness = (function () {
       key: "printCommand",
       value: function printCommand(command) {
         this.state.content.append("<h3>&gt;" + command + "</h3>");
+      }
+    }, {
+      key: "printBanner",
+      value: function printBanner() {
+        this.say(this.state.gameInfo.title + "<br/>");
+        this.say(this.state.gameInfo.description);
+        this.say("Author: " + this.state.gameInfo.author + "<br/>Release Date: " + this.state.gameInfo.releaseDate);
       }
     }, {
       key: "say",
@@ -888,10 +898,8 @@ var CloakOfDarkness = (function () {
             player: player,
             roomName: player.room.name
           }, (function () {
-            this.say(gameInfo.description);
-            this.say("Author: " + gameInfo.author + "<br/>Release Date: " + gameInfo.releaseDate);
+            this.printBanner();
             this.say("---");
-
             this.say(startingRoom.text[0].text);
           }).bind(this));
         }
@@ -1026,6 +1034,7 @@ var CloakOfDarkness = (function () {
       value: function componentDidMount() {
         this.setState({
           content: $("#content"),
+          gameInfo: this.props.gameInfo,
           data: this.props.data,
           player: this.initializePlayer(),
           systemAPI: {
@@ -1050,7 +1059,7 @@ var CloakOfDarkness = (function () {
         return React.createElement(
           "div",
           null,
-          React.createElement(InfoBar, { title: gameInfo.title,
+          React.createElement(InfoBar, { title: this.props.gameInfo.title,
             room: this.state.roomName,
             score: this.state.score }),
           React.createElement("div", { id: "content", style: contentStyle }),
@@ -1063,7 +1072,7 @@ var CloakOfDarkness = (function () {
   })(React.Component);
 
   return {
-    init: function init() {
+    init: function init(gameInfo) {
       var dl = new DataLoader();
 
       dl.load(gameInfo.dataFile, function (status) {
@@ -1083,13 +1092,9 @@ var CloakOfDarkness = (function () {
         // console.log(gdata);
         // console.log("----------------------");
 
-        ReactDOM.render(React.createElement(GameUI, { data: gdata }), document.getElementById("ui"));
+        ReactDOM.render(React.createElement(GameUI, { gameInfo: gameInfo, data: gdata }), document.getElementById("ui"));
       });
     }
   };
 })();
-
-$(document).ready(function () {
-  CloakOfDarkness.init();
-});
-//# sourceMappingURL=app.js.map
+//# sourceMappingURL=ifengine.js.map
