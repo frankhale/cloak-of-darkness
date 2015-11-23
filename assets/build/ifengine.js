@@ -10,6 +10,22 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+// IFEngine.js - A small Interactive Fiction engine.
+// Copyright (C) 2015  Frank Hale <frankhale@gmail.com>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 var IFEngine = (function () {
   var keys = {
     Enter: 13,
@@ -25,7 +41,9 @@ var IFEngine = (function () {
     southEast: ["southeast", "se"],
     southWest: ["southwest", "sw"],
     east: ["east", "e"],
-    west: ["west", "w"]
+    west: ["west", "w"],
+    up: ["up"],
+    down: ["down"]
   };
 
   function flattenDirectionSynonyms() {
@@ -250,7 +268,7 @@ var IFEngine = (function () {
           // 2 text: 6, 7, 8
 
           return getStructuredObject(data, function (gName, data) {
-            if (gName === "synonyms" || gName === "text") {
+            if (gName === "synonyms" || gName === "text" || gName === "rooms") {
               return data.split(",").map(function (n) {
                 return Number(n);
               });
@@ -295,11 +313,14 @@ var IFEngine = (function () {
             } else if (gName === "wearable") {
               var _result = false;
 
-              if (data.toLowerCase().trim().substr("true") > -1) {
+              if (data.toLowerCase().trim() === "true") {
                 _result = true;
-              } else if (data.toLowerCase().trim().substr("false") > -1) {
+              } else if (data.toLowerCase().trim() === "false") {
                 _result = false;
               }
+
+              console.log(_result);
+
               return _result;
             }
           });
@@ -767,7 +788,8 @@ var IFEngine = (function () {
         // minimal player object to satisfy the InfoBar title, room and score
         // properties
         roomName: "",
-        score: 0
+        score: 0,
+        moves: 0
       };
       return _this4;
     }
@@ -777,8 +799,10 @@ var IFEngine = (function () {
       value: function initializePlayer() {
         return {
           score: 0,
+          moves: 0,
           room: {},
-          inventory: [] // <- will contain the cloak
+          previousRooms: {},
+          inventory: []
         };
       }
     }, {
@@ -833,22 +857,53 @@ var IFEngine = (function () {
         var exits = _.find(this.state.data.exits, { "id": id });
         if (exits !== undefined) {
           return exits.rooms;
+        } else {
+          return [];
         }
       }
     }, {
       key: "getActions",
       value: function getActions(id) {
-        // not implemented yet
+        var _this6 = this;
+
+        var actions = _.filter(this.state.data.actions, function (a) {
+          if (a.rooms.indexOf(id) > -1) {
+            return a;
+          }
+        });
+
+        if (actions !== undefined) {
+          _.forEach(actions, function (a) {
+            var actionImpl = _.find(_this6.state.gameInfo.actions, { "name": a.name });
+            if (actionImpl !== undefined) {
+              a.func = actionImpl.func;
+            }
+          });
+
+          return actions;
+        } else {
+          return [];
+        }
       }
     }, {
       key: "getTriggers",
       value: function getTriggers(id) {
-        // not implemented yet
+        var triggers = _.find(this.state.data.triggers, { "id": id });
+        if (triggers !== undefined) {
+          return triggers;
+        } else {
+          return [];
+        }
       }
     }, {
       key: "getObjects",
       value: function getObjects(id) {
-        // not implemented yet
+        var objects = _.find(this.state.data.objects, { "id": id });
+        if (actions !== undefined) {
+          return objects;
+        } else {
+          return [];
+        }
       }
     }, {
       key: "getText",
@@ -863,22 +918,34 @@ var IFEngine = (function () {
     }, {
       key: "getRoom",
       value: function getRoom(id) {
-        var _this6 = this;
+        var _this7 = this;
 
         var room = _.find(this.state.data.rooms, { "id": id });
 
         if (room !== undefined) {
-          return {
+          var result = {
             id: id,
             name: room.name,
             synonyms: _.uniq(_.flatten(room.synonyms.map(function (s) {
-              return _this6.getSynonyms(s);
+              return _this7.getSynonyms(s);
             }))),
             text: room.text.map(function (t) {
-              return _this6.getText(t);
+              return _this7.getText(t);
             }),
-            exits: this.getExits(id)
+            exits: this.getExits(id),
+            actions: this.getActions(id),
+            triggers: this.getTriggers(id)
           };
+
+          _.forEach(result.actions, function (a) {
+            a.synonyms = _.uniq(_.flatten(a.synonyms.map(function (s) {
+              return _this7.getSynonyms(s);
+            })));
+          });
+
+          //console.log(result);
+
+          return result;
         }
       }
     }, {
@@ -893,6 +960,8 @@ var IFEngine = (function () {
         if (startingRoom !== undefined) {
           var player = this.initializePlayer();
           player.room = startingRoom;
+
+          //player.inventory = _.uniq(_.flatten(room.synonyms.map((s) => { return this.getSynonyms(s); }))),
 
           this.setState({
             player: player,
@@ -931,7 +1000,12 @@ var IFEngine = (function () {
 
         findIn(this.state.systemCommands, "system", found);
         findIn(this.state.playerCommands, "player", found);
-        // findIn(this.state.player.room.actions, "player", found)
+        findIn(this.state.player.room.actions, "player", found);
+
+        // console.log("---");
+        // console.log(this.state.player.room);
+        // console.log(this.state.player.room.actions);
+        // console.log("---");
 
         if (!foundCommand) {
           this.say("I don't understand: " + command);
@@ -956,7 +1030,7 @@ var IFEngine = (function () {
     }, {
       key: "go",
       value: function go(direction) {
-        var _this7 = this;
+        var _this8 = this;
 
         // The room exits are an array and the following indices correspond to the
         // following directions.
@@ -969,6 +1043,8 @@ var IFEngine = (function () {
         // 5: southWest: ["southwest", "sw"]
         // 6: east: ["east", "e"]
         // 7: west: ["west", "w"]
+        // 8: up: ["up"]
+        // 9: down: ["down"]
 
         var dirName = _.findKey(directionSynonyms, function (ds) {
           return ds.indexOf(direction) > -1;
@@ -988,21 +1064,21 @@ var IFEngine = (function () {
 
             //console.log(`index = ${index} | directionSynonyms = ${directionSynonyms[dirName]}`);
 
-            var newRoom = _this7.getRoom(_this7.state.player.room.exits[index]);
+            var newRoom = _this8.getRoom(_this8.state.player.room.exits[index]);
 
             if (newRoom !== undefined) {
               //console.log(newRoom);
-              _this7.state.player.room = newRoom;
+              _this8.state.player.room = newRoom;
 
-              _this7.setState({
-                roomName: _this7.state.player.room.name
+              _this8.setState({
+                roomName: _this8.state.player.room.name
               }, function () {
-                _this7.say("Entered: " + newRoom.name);
-                _this7.say(_this7.state.player.room.text[0].text);
+                _this8.say("Entered: " + newRoom.name);
+                _this8.say(_this8.state.player.room.text[0].text);
                 //this.findAndExecuteTrigger("entry");
               });
             } else {
-                _this7.say("I cannot go in that direction.");
+                _this8.say("I cannot go in that direction.");
                 //this.findAndExecuteTrigger("movement");
               }
           })();

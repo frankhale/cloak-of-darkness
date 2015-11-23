@@ -1,3 +1,19 @@
+// IFEngine.js - A small Interactive Fiction engine.
+// Copyright (C) 2015  Frank Hale <frankhale@gmail.com>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 const IFEngine = (function() {
   const keys = {
     Enter: 13,
@@ -13,7 +29,9 @@ const IFEngine = (function() {
     southEast: ["southeast", "se"],
     southWest: ["southwest", "sw"],
     east: ["east", "e"],
-    west: ["west", "w"]
+    west: ["west", "w"],
+    up: ["up"],
+    down: ["down"]
   };
 
   function flattenDirectionSynonyms() {
@@ -223,7 +241,7 @@ const IFEngine = (function() {
         // 2 text: 6, 7, 8
 
         return getStructuredObject(data, (gName, data) => {
-          if(gName === "synonyms" || gName === "text") {
+          if(gName === "synonyms" || gName === "text" || gName === "rooms") {
             return data.split(",").map((n) => { return Number(n); });
           }
         });
@@ -262,11 +280,12 @@ const IFEngine = (function() {
           } else if (gName === "wearable") {
             let result = false;
 
-            if(data.toLowerCase().trim().substr("true") > -1) {
-              result = true;
-            } else if(data.toLowerCase().trim().substr("false") > -1) {
-              result = false;
+            if(data.toLowerCase().trim() === "true") {
+               result = true;
+            } else if(data.toLowerCase().trim() === "false") {
+               result = false;
             }
+
             return result;
           }
         });
@@ -695,14 +714,17 @@ const IFEngine = (function() {
         // minimal player object to satisfy the InfoBar title, room and score
         // properties
         roomName: "",
-        score: 0
+        score: 0,
+        moves: 0
       }
     }
     initializePlayer() {
       return {
         score: 0,
+        moves: 0,
         room: {},
-        inventory: [] // <- will contain the cloak
+        previousRooms: {},
+        inventory: []
       }
     }
     scrollContentArea() {
@@ -741,16 +763,45 @@ const IFEngine = (function() {
       const exits = _.find(this.state.data.exits, { "id" : id });
       if(exits !== undefined) {
         return exits.rooms;
+      } else {
+        return [];
       }
     }
     getActions(id) {
-      // not implemented yet
+      const actions = _.filter(this.state.data.actions, function (a) {
+        if(a.rooms.indexOf(id) > -1) {
+         return a;
+        }
+      });
+
+      if(actions !== undefined) {
+        _.forEach(actions, (a) => {
+          const actionImpl = _.find(this.state.gameInfo.actions, { "name" : a.name });
+          if(actionImpl !== undefined) {
+           a.func = actionImpl.func;
+          }
+        });
+
+        return actions;
+      } else {
+         return [];
+      }
     }
     getTriggers(id) {
-      // not implemented yet
+      const triggers = _.find(this.state.data.triggers, { "id" : id });
+      if(triggers !== undefined) {
+        return triggers;
+      } else {
+        return [];
+      }
     }
     getObjects(id) {
-      // not implemented yet
+      const objects = _.find(this.state.data.objects, { "id" : id });
+      if(actions !== undefined) {
+        return objects;
+      } else {
+        return [];
+      }
     }
     getText(id) {
       const text = _.find(this.state.data.text, { "id" : id });
@@ -764,13 +815,23 @@ const IFEngine = (function() {
       const room = _.find(this.state.data.rooms, { "id" : id });
 
       if(room !== undefined) {
-        return {
+        let result = {
           id: id,
           name: room.name,
           synonyms: _.uniq(_.flatten(room.synonyms.map((s) => { return this.getSynonyms(s); }))),
           text: room.text.map((t) => { return this.getText(t); }),
-          exits: this.getExits(id)
+          exits: this.getExits(id),
+          actions: this.getActions(id),
+          triggers: this.getTriggers(id)
         };
+
+        _.forEach(result.actions, (a) => {
+          a.synonyms = _.uniq(_.flatten(a.synonyms.map((s) => { return this.getSynonyms(s); })))
+        });
+
+        //console.log(result);
+
+        return result;
       }
     }
     startGame() {
@@ -783,6 +844,8 @@ const IFEngine = (function() {
       if(startingRoom !== undefined) {
         let player = this.initializePlayer();
         player.room = startingRoom;
+
+        //player.inventory = _.uniq(_.flatten(room.synonyms.map((s) => { return this.getSynonyms(s); }))),
 
         this.setState({
           player: player,
@@ -817,7 +880,12 @@ const IFEngine = (function() {
 
       findIn(this.state.systemCommands, "system", found);
       findIn(this.state.playerCommands, "player", found);
-      // findIn(this.state.player.room.actions, "player", found)
+      findIn(this.state.player.room.actions, "player", found);
+
+      // console.log("---");
+      // console.log(this.state.player.room);
+      // console.log(this.state.player.room.actions);
+      // console.log("---");
 
       if(!foundCommand) {
         this.say(`I don't understand: ${command}`);
@@ -849,6 +917,8 @@ const IFEngine = (function() {
       // 5: southWest: ["southwest", "sw"]
       // 6: east: ["east", "e"]
       // 7: west: ["west", "w"]
+      // 8: up: ["up"]
+      // 9: down: ["down"]
 
       var dirName = _.findKey(directionSynonyms, (ds) => {
         return ds.indexOf(direction) > -1;

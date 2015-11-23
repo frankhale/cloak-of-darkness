@@ -55,10 +55,12 @@ rooms
 
 actions
 1 hang
+1 rooms: 2
 1 synonyms: 2
 1 what: 1
 1 text: 4
 2 read
+2 rooms: 3
 2 synonyms: 3
 2 text: 6, 7, 8
 
@@ -87,9 +89,9 @@ scenery
 3 rooms: 1
 
 exits
-1 0, 0, 0, 3, 0, 0, 0, 2
-2 0, 0, 0, 0, 0, 0, 1, 0
-3 1, 0, 0, 0, 0, 0, 0, 0
+1 0, 0, 0, 3, 0, 0, 0, 2, 0, 0
+2 0, 0, 0, 0, 0, 0, 1, 0, 0, 0
+3 1, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
 player
 1 inventory

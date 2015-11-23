@@ -138,9 +138,9 @@ no exit at that direction. The numbers represent the index of the room.
 
 ```
 exits
-1 0, 0, 0, 3, 0, 0, 0, 2
-2 0, 0, 0, 0, 0, 0, 1, 0
-3 1, 0, 0, 0, 0, 0, 0, 0
+1 0, 0, 0, 3, 0, 0, 0, 2, 0, 0
+2 0, 0, 0, 0, 0, 0, 1, 0, 0, 0
+3 1, 0, 0, 0, 0, 0, 0, 0, 0, 0
 ```
 
 Here is a comment lifted from the source code which details the positions in the
@@ -156,6 +156,8 @@ direction.
 5: southWest: ["southwest", "sw"]
 6: east: ["east", "e"]
 7: west: ["west", "w"]
+8: up: ["up"]
+9: down: ["down"]
 ```
 
 NOTE: The data format is very much still a piece of clay that is being molded as
@@ -164,7 +166,7 @@ I work through the various problems of writing this IF engine.
 ##Author(s):
 
 Frank Hale &lt;frankhale@gmail.com&gt;  
-10 November 2015
+22 November 2015
 
 ## License
 
