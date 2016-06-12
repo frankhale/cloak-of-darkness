@@ -1,9 +1,5 @@
 {
   "name": "cloak-of-darkness",
-  "version": "0.0.1",
-  "author": "Frank Hale <frankhale@gmail.com>",
-  "description": "A Cloak of Darkness implementation (a text adventure Hello, World)",  
-  "license": "GPL-2.0",
   "private": true,
   "ignore": [
     "**/.*",
@@ -13,9 +9,9 @@
     "tests"
   ],
   "dependencies": {
-    "jquery": "^2.1.4",
-    "lodash": "^3.10.1",
-    "react": "^0.14.3",
+    "jquery": "^3.0.0",
+    "lodash": "^4.13.1",
+    "react": "^15.1.0",
     "marked": "^0.3.5"
   }
 }

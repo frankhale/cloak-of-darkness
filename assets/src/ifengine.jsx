@@ -110,11 +110,11 @@ const IFEngine = (function() {
 
       let joinNumberedLines = (data) => {
         let result = [];
-        const ids = _.uniq(_.pluck(data, "id"));
+        const ids = _.uniq(_.map(data, "id"));
 
         _.forEach(ids, (id) => {
-          const d = _.where(data, { "id" : id});
-          const textJoined = _.pluck(d, "text").join(" ");
+          const d = _.filter(data, { "id" : id});
+          const textJoined = _.map(d, "text").join(" ");
 
           result.push({
             id: id,
@@ -128,14 +128,14 @@ const IFEngine = (function() {
       let getGroupedLines = (data) => {
         let groups = [];
         const temp = readNumberedLines(data);
-        const ids = _.uniq(_.pluck(temp, "id"));
+        const ids = _.uniq(_.map(temp, "id"));
 
         _.forEach(ids, (id) => {
-          const d = _.where(temp, { "id" : id});
+          const d = _.filter(temp, { "id" : id});
 
           groups.push({
              id: id,
-             group: _.pluck(d, "text")
+             group: _.map(d, "text")
           });
         });
 
