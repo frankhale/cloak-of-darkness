@@ -1,12 +1,20 @@
-const CloakOfDarkness = (function() {
-  const gameInfo = {
-    title: "Cloak of Darkness",
-    description: "Welcome, Cloak of Darkness is an implementation of the de facto 'Hello, World' of interactive  fiction by the same name. If you want to find out what a 'Cloak of Darkness' is you can find out more <a href='http://www.firthworks.com/roger/cloak' target='_blank'>here</a>.",
-    author: "Frank Hale <frankhale@gmail.com>",
-    releaseDate: "8 November 2015",
-    dataFile: "/assets/data/cloak-of-darkness-data.txt"
-  };
+// IFEngine.js - A small Interactive Fiction engine.
+// Copyright (C) 2015  Frank Hale <frankhale@gmail.com>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+const IFEngine = (function() {
   const keys = {
     Enter: 13,
     Up: 38,
@@ -21,7 +29,9 @@ const CloakOfDarkness = (function() {
     southEast: ["southeast", "se"],
     southWest: ["southwest", "sw"],
     east: ["east", "e"],
-    west: ["west", "w"]
+    west: ["west", "w"],
+    up: ["up"],
+    down: ["down"]
   };
 
   function flattenDirectionSynonyms() {
@@ -38,25 +48,25 @@ const CloakOfDarkness = (function() {
 
   // borrowed from: http://stackoverflow.com/a/7220510/170217
   function syntaxHighlight(json) {
-      if (typeof json != 'string') {
-           json = JSON.stringify(json, undefined, 2);
-      }
-      json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-          let cls = 'number';
-          if (/^"/.test(match)) {
-              if (/:$/.test(match)) {
-                  cls = 'key';
-              } else {
-                  cls = 'string';
-              }
-          } else if (/true|false/.test(match)) {
-              cls = 'boolean';
-          } else if (/null/.test(match)) {
-              cls = 'null';
-          }
-          return '<span class="' + cls + '">' + match + '</span>';
-      });
+    if (typeof json != 'string') {
+         json = JSON.stringify(json, undefined, 2);
+    }
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        let cls = 'number';
+        if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+                cls = 'key';
+            } else {
+                cls = 'string';
+            }
+        } else if (/true|false/.test(match)) {
+            cls = 'boolean';
+        } else if (/null/.test(match)) {
+            cls = 'null';
+        }
+        return '<span class="' + cls + '">' + match + '</span>';
+    });
   };
 
   class DataLoader {
@@ -100,11 +110,11 @@ const CloakOfDarkness = (function() {
 
       let joinNumberedLines = (data) => {
         let result = [];
-        const ids = _.uniq(_.pluck(data, "id"));
+        const ids = _.uniq(_.map(data, "id"));
 
         _.forEach(ids, (id) => {
-          const d = _.where(data, { "id" : id});
-          const textJoined = _.pluck(d, "text").join(" ");
+          const d = _.filter(data, { "id" : id});
+          const textJoined = _.map(d, "text").join(" ");
 
           result.push({
             id: id,
@@ -118,14 +128,14 @@ const CloakOfDarkness = (function() {
       let getGroupedLines = (data) => {
         let groups = [];
         const temp = readNumberedLines(data);
-        const ids = _.uniq(_.pluck(temp, "id"));
+        const ids = _.uniq(_.map(temp, "id"));
 
         _.forEach(ids, (id) => {
-          const d = _.where(temp, { "id" : id});
+          const d = _.filter(temp, { "id" : id});
 
           groups.push({
              id: id,
-             group: _.pluck(d, "text")
+             group: _.map(d, "text")
           });
         });
 
@@ -231,7 +241,7 @@ const CloakOfDarkness = (function() {
         // 2 text: 6, 7, 8
 
         return getStructuredObject(data, (gName, data) => {
-          if(gName === "synonyms" || gName === "text") {
+          if(gName === "synonyms" || gName === "text" || gName === "rooms") {
             return data.split(",").map((n) => { return Number(n); });
           }
         });
@@ -270,14 +280,19 @@ const CloakOfDarkness = (function() {
           } else if (gName === "wearable") {
             let result = false;
 
-            if(data.toLowerCase().trim().substr("true") > -1) {
-              result = true;
-            } else if(data.toLowerCase().trim().substr("false") > -1) {
-              result = false;
+            if(data.toLowerCase().trim() === "true") {
+               result = true;
+            } else if(data.toLowerCase().trim() === "false") {
+               result = false;
             }
+
             return result;
           }
         });
+      }
+
+      let readScenery = (data) => {
+        return getStructuredObject(data);
       }
 
       let readExits = (data) => {
@@ -320,6 +335,8 @@ const CloakOfDarkness = (function() {
         result.data = readTriggers(lines);
       } else if (name === "objects") {
         result.data = readObjects(lines);
+      } else if (name === "scenery") {
+        result.data = readScenery(lines);
       } else if (name === "exits") {
         result.data = readExits(lines);
       } else if (name === "player") {
@@ -573,6 +590,12 @@ const CloakOfDarkness = (function() {
 
       const systemCommands = [
         {
+          synonyms: ["/banner"],
+          func: function(cmd, args) {
+            this.printBanner();
+          }.bind(this)
+        },
+        {
           synonyms: ["/save"],
           func: function(cmd, args) {
             //this.say("not yet implemented.");
@@ -666,6 +689,7 @@ const CloakOfDarkness = (function() {
           synonyms: ["help","h"],
           func: function(cmd, args) {
             const help = [
+              "<b>/banner</b> - prints the game title, description and author.",
               "<b>/debug [key]</b> - prints the game data object for debugging purposes.",
               "<b>/save</b> - prints an encoded string you can use to restore your game.",
               "<b>/restore &lt;encoded string&gt;</b> - restores a previous game.",
@@ -690,14 +714,17 @@ const CloakOfDarkness = (function() {
         // minimal player object to satisfy the InfoBar title, room and score
         // properties
         roomName: "",
-        score: 0
+        score: 0,
+        moves: 0
       }
     }
     initializePlayer() {
       return {
         score: 0,
+        moves: 0,
         room: {},
-        inventory: [] // <- will contain the cloak
+        previousRooms: {},
+        inventory: []
       }
     }
     scrollContentArea() {
@@ -708,6 +735,11 @@ const CloakOfDarkness = (function() {
     }
     printCommand(command) {
       this.state.content.append("<h3>&gt;" + command + "</h3>");
+    }
+    printBanner() {
+      this.say(`${this.state.gameInfo.title}<br/>`);
+      this.say(this.state.gameInfo.description);
+      this.say(`Author: ${this.state.gameInfo.author}<br/>Release Date: ${this.state.gameInfo.releaseDate}`);
     }
     say(text, newLine = true) {
       if(text.length > 0) {
@@ -731,16 +763,45 @@ const CloakOfDarkness = (function() {
       const exits = _.find(this.state.data.exits, { "id" : id });
       if(exits !== undefined) {
         return exits.rooms;
+      } else {
+        return [];
       }
     }
     getActions(id) {
-      // not implemented yet
+      const actions = _.filter(this.state.data.actions, function (a) {
+        if(a.rooms.indexOf(id) > -1) {
+         return a;
+        }
+      });
+
+      if(actions !== undefined) {
+        _.forEach(actions, (a) => {
+          const actionImpl = _.find(this.state.gameInfo.actions, { "name" : a.name });
+          if(actionImpl !== undefined) {
+           a.func = actionImpl.func;
+          }
+        });
+
+        return actions;
+      } else {
+         return [];
+      }
     }
     getTriggers(id) {
-      // not implemented yet
+      const triggers = _.find(this.state.data.triggers, { "id" : id });
+      if(triggers !== undefined) {
+        return triggers;
+      } else {
+        return [];
+      }
     }
     getObjects(id) {
-      // not implemented yet
+      const objects = _.find(this.state.data.objects, { "id" : id });
+      if(actions !== undefined) {
+        return objects;
+      } else {
+        return [];
+      }
     }
     getText(id) {
       const text = _.find(this.state.data.text, { "id" : id });
@@ -754,13 +815,23 @@ const CloakOfDarkness = (function() {
       const room = _.find(this.state.data.rooms, { "id" : id });
 
       if(room !== undefined) {
-        return {
+        let result = {
           id: id,
           name: room.name,
           synonyms: _.uniq(_.flatten(room.synonyms.map((s) => { return this.getSynonyms(s); }))),
           text: room.text.map((t) => { return this.getText(t); }),
-          exits: this.getExits(id)
+          exits: this.getExits(id),
+          actions: this.getActions(id),
+          triggers: this.getTriggers(id)
         };
+
+        _.forEach(result.actions, (a) => {
+          a.synonyms = _.uniq(_.flatten(a.synonyms.map((s) => { return this.getSynonyms(s); })))
+        });
+
+        //console.log(result);
+
+        return result;
       }
     }
     startGame() {
@@ -774,14 +845,14 @@ const CloakOfDarkness = (function() {
         let player = this.initializePlayer();
         player.room = startingRoom;
 
+        //player.inventory = _.uniq(_.flatten(room.synonyms.map((s) => { return this.getSynonyms(s); }))),
+
         this.setState({
           player: player,
           roomName: player.room.name
         }, function() {
-          this.say(gameInfo.description);
-          this.say(`Author: ${gameInfo.author}<br/>Release Date: ${gameInfo.releaseDate}`);
+          this.printBanner();
           this.say("---");
-
           this.say(startingRoom.text[0].text);
         }.bind(this));
       }
@@ -809,7 +880,12 @@ const CloakOfDarkness = (function() {
 
       findIn(this.state.systemCommands, "system", found);
       findIn(this.state.playerCommands, "player", found);
-      // findIn(this.state.player.room.actions, "player", found)
+      findIn(this.state.player.room.actions, "player", found);
+
+      // console.log("---");
+      // console.log(this.state.player.room);
+      // console.log(this.state.player.room.actions);
+      // console.log("---");
 
       if(!foundCommand) {
         this.say(`I don't understand: ${command}`);
@@ -841,6 +917,8 @@ const CloakOfDarkness = (function() {
       // 5: southWest: ["southwest", "sw"]
       // 6: east: ["east", "e"]
       // 7: west: ["west", "w"]
+      // 8: up: ["up"]
+      // 9: down: ["down"]
 
       var dirName = _.findKey(directionSynonyms, (ds) => {
         return ds.indexOf(direction) > -1;
@@ -900,6 +978,7 @@ const CloakOfDarkness = (function() {
     componentDidMount() {
       this.setState({
         content: $("#content"),
+        gameInfo: this.props.gameInfo,
         data: this.props.data,
         player: this.initializePlayer(),
         systemAPI: {
@@ -921,7 +1000,7 @@ const CloakOfDarkness = (function() {
 
       return (
         <div>
-          <InfoBar title={gameInfo.title}
+          <InfoBar title={this.props.gameInfo.title}
                    room={this.state.roomName}
                    score={this.state.score} />
           <div id="content" style={contentStyle}></div>
@@ -932,7 +1011,7 @@ const CloakOfDarkness = (function() {
   }
 
   return {
-    init: function() {
+    init: function(gameInfo) {
       let dl = new DataLoader();
 
       dl.load(gameInfo.dataFile,
@@ -952,12 +1031,8 @@ const CloakOfDarkness = (function() {
           // console.log(gdata);
           // console.log("----------------------");
 
-          ReactDOM.render(<GameUI data={gdata} />, document.getElementById("ui"));
+          ReactDOM.render(<GameUI gameInfo={gameInfo} data={gdata} />, document.getElementById("ui"));
         });
     }
   }
 })();
-
-$(document).ready(function() {
-  CloakOfDarkness.init();
-});

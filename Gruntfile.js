@@ -12,7 +12,8 @@ module.exports = function(grunt) {
       },
       dist: {
         files: {
-          "assets/build/app.js": "assets/src/app.jsx",
+          "assets/build/ifengine.js": "assets/src/ifengine.jsx",
+          "assets/build/cloak-of-darkness.js": "assets/src/cloak-of-darkness.jsx"
         }
       }
     },
@@ -22,7 +23,8 @@ module.exports = function(grunt) {
       },
       build: {
         files: {
-          'assets/build/app.min.js': 'assets/build/app.js',
+          'assets/build/ifengine.min.js': 'assets/build/ifengine.js',
+          "assets/build/cloak-of-darkness.min.js": "assets/build/cloak-of-darkness.js"
         }
       }
     }

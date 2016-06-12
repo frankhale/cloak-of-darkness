@@ -4,13 +4,29 @@ html,body {
 }
 * {
   font-family: 'VT323', sans-serif;
-  font-size: 32pt;
+  font-size: 22pt;
 }
 *:hover {
   outline: none;
+}
+pre {
+  outline: none !important;
+  border-left: 4px solid black;
+  background-color: #eee;
+  white-space: pre-wrap;
+  margin-left: 40px !important;
+  margin-right: 40px !important;
 }
 blockquote {
   border-left: 4px solid black;
   background-color: #eee;
   padding: 10px;
 }
+
+/* For JSON pretty print syntax hightlighting */
+pre {outline: 1px solid #ccc; padding: 5px; margin: 5px; }
+.string { color: green; }
+.number { color: darkorange; }
+.boolean { color: blue; }
+.null { color: magenta; }
+.key { color: red; }
