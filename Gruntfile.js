@@ -1,36 +1,36 @@
 module.exports = function(grunt) {
 
-  require("load-grunt-tasks")(grunt);
+require("load-grunt-tasks")(grunt); // npm install --save-dev load-grunt-tasks
 
-  grunt.initConfig({
-    pkg: grunt.file.readJSON('package.json'),
-    "babel": {
-      options: {
-        sourceMap: true,
-        plugins: ["transform-react-jsx"],
-        presets: ['babel-preset-es2015']
-      },
-      dist: {
-        files: {
-          "assets/build/ifengine.js": "assets/src/ifengine.jsx",
-          "assets/build/cloak-of-darkness.js": "assets/src/cloak-of-darkness.jsx"
-        }
+grunt.initConfig({
+  pkg: grunt.file.readJSON('package.json'),
+  babel: {
+    options: {
+      sourceMap: true,
+      plugins: ["transform-react-jsx"],
+      presets: ['babel-preset-es2015'],
+      compact: "auto"
+    },    
+    dist: {
+      files: {
+        "build/cloak.js": "src/cloak.js"
       }
-    },
-    "uglify": {
+    }
+  },
+  uglify: {
       options: {
-        banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+        banner: '/*! <%= pkg.name %> <%= pkg.author %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
       },
       build: {
-        files: {
-          'assets/build/ifengine.min.js': 'assets/build/ifengine.js',
-          "assets/build/cloak-of-darkness.min.js": "assets/build/cloak-of-darkness.js"
+        files: {          
+          "build/cloak.min.js": "build/cloak.js",
         }
       }
     }
-  });
+});
 
-  grunt.loadNpmTasks('grunt-contrib-uglify');
+grunt.loadNpmTasks("grunt-contrib-uglify");
 
-  grunt.registerTask('default', ['babel', 'uglify']);
+grunt.registerTask("default", ["babel", "uglify"]);
+
 };
