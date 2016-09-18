@@ -17,6 +17,7 @@ http://www.firthworks.com/roger/cloak/
 - Navigate rooms `e, east, w, west, n, north, s, south`
 - Examining yourself `x me, examine me`
 - Look at inventory `i, inv, inventory`
+- Need a hint? `hint`
 
 Spoilers:
 
