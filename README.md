@@ -3,7 +3,8 @@
 Cloak of Darkness is a reprise of the de facto "Hello, World" of interactive
 fiction by the same name.
 
-Here is a source for a definition / specification for a Cloak Of Darkness like clone:
+Here is a source for a definition / specification for a Cloak Of Darkness like 
+clone:
 
 http://www.firthworks.com/roger/cloak/
 
@@ -15,11 +16,13 @@ http://www.firthworks.com/roger/cloak/
 
 - Navigate rooms `e, east, w, west, n, north, s, south`
 - Examining yourself `x me, examine me`
+- Look at inventory `i, inv, inventory`
 
 Spoilers:
 
 - In Cloakroom you can hang your cloak or drop it `hang cloak, drop cloak`
-- In the Bar you can `read message` if you have either hung up your cloak or dropped it or disturbed the room with your movement
+- In the Bar you can `read message` if you have either hung up your cloak or 
+dropped it or disturbed the room with your movement
 
 ##How can I run this?
 
@@ -29,7 +32,8 @@ Requirements: <b>node.js</b> - https://nodejs.org
 npm install -g bower
 ```
 
-Clone the code, open a terminal to the code and use npm and bower to install dependencies.
+Clone the code, open a terminal to the code and use npm and bower to install 
+dependencies.
 
 Use npm to install the node module dependencies:
 
