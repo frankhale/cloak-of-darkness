@@ -33,10 +33,12 @@ const CloakOfDarkness = (function() {
         win: 70,
         disturbingMovement: 80,      
         lost: 100,        
-        me: 111,        
+        me: 111,
+        cloakInfo: 112,        
         dontUnderstand: 120,
         illegalDirection: 130,
-        initializePlayer: 140
+        initializePlayer: 140,
+        inventoryEmpty: 150
     };        
     
     _this.directions = [ "n", "north", "s", "south", "e", "east", "w", "west" ];
@@ -55,8 +57,10 @@ const CloakOfDarkness = (function() {
         { id: _this.ids.disturbingMovement, text: "The room is dark and your movement is slow and steady, as you carefully walk you feel as though you are stepping on something on the floor and disturbing it." },
         { id: _this.ids.lost, text: "You Lost!" },    
         { id: _this.ids.me, text: "You are an average male in your late 30's, approximately 6 feet tall and you are feeling great." },
+        { id: _this.ids.cloakInfo, text: "By the way, you are wearing some crazy cloak that looks like it came straight out of the 1850's.." },
         { id: _this.ids.dontUnderstand, text: "I don't understand what you want." },
-        { id: _this.ids.illegalDirection, text: "You cannot go in that direction." }
+        { id: _this.ids.illegalDirection, text: "You cannot go in that direction." },
+        { id: _this.ids.inventoryEmpty, text: "Your inventory is empty." }
     ];
     
     _this.exits = [
@@ -71,7 +75,17 @@ const CloakOfDarkness = (function() {
                 {
                     synonyms: ["x me", "examine me"], 
                     perform: function(player) {
-                        return _.find(_this.story, { id: _this.ids.me }).text;
+                        let me = _.find(_this.story, { id: _this.ids.me }).text,
+                            meCloak = _.find(_this.story, { id: _this.ids.cloakInfo }).text,
+                            meFinal = "";
+
+                        if(_.indexOf(player.items, "cloak of darkness") > -1) {
+                            meFinal = `${me} ${meCloak}`; 
+                        } else {
+                            meFinal = me;
+                        }
+
+                        return meFinal;
                     }
                 },
                 {
@@ -86,6 +100,27 @@ const CloakOfDarkness = (function() {
                         } 
 
                         return text;
+                    }
+                },
+                {
+                    synonyms: ["i", "inv", "inventory"],
+                    perform: function(player) {
+                        if(player.items.length > 0) {
+                            return ( 
+                                <div>
+                                    Your have the following items in your inventory:
+                                    <br/>
+                                    <br/>
+                                    {
+                                        player.items.map((item, i) => {
+                                            return <div key={i}>{item}</div>;
+                                        })
+                                    }
+                                </div>
+                            );
+                        } else {
+                            return _.find(_this.story, { id: _this.ids.inventoryEmpty }).text;
+                        }                       
                     }
                 }
             ]
