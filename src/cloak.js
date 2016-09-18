@@ -1,9 +1,11 @@
-// A Cloak of Darkness implementation with a few artistic liberties taken
+// A Cloak of Darkness implementation with a few artistic liberties taken.
 // 
 // Frank Hale <frankhale@gmail.com>
 // 18 September 2016
 //
 // Run: live-server --ignore="C:\Users\frank\Desktop\Cloak-of-Darkness\src"
+// Note: ^ will need to change the ignore dir to be relative to where you cloned the code.
+//
 //
 // Cloak of Darkness specification: http://www.firthworks.com/roger/cloak/
 //
@@ -20,9 +22,11 @@
 const CloakOfDarkness = (function() {
     var _this = {};
     
+    // IDs help you point to specific pieces of the game story
     _this.ids = {
         foyer: 0,
         cloakroom: 10,
+        brassHook: 11,
         bar: 20,
         barWithCloak: 21,        
         barWithoutCloak: 22,
@@ -38,15 +42,19 @@ const CloakOfDarkness = (function() {
         dontUnderstand: 120,
         illegalDirection: 130,
         initializePlayer: 140,
-        inventoryEmpty: 150
+        inventoryEmpty: 150,
+        hintCloakroom: 160,
+        hintUnknown: 170
     };        
     
     _this.directions = [ "n", "north", "s", "south", "e", "east", "w", "west" ];
     
+    // All game text goes here
     _this.story = [
         { id: _this.ids.foyer, name: "Foyer", text: "You are in the Foyer of the Opera House. This empty room has doors to the south and west, also an unusable exit to the north. There is nobody else around." },
         { id: _this.ids.cloakroom, name: "Cloakroom", text: "You are in the Cloakroom. On the wall is fixed a small brass hook." },
         { id: _this.ids.bar, name: "Bar", text: "You are in the Bar." },
+        { id: _this.ids.brassHook, text: "There is nothing unusal about this brass hook. You suppose it's for hanging a coat or even better a cloak." },
         { id: _this.ids.barWithCloak, text: "The room is unlit and you cannot see anything." },        
         { id: _this.ids.barWithoutCloak, text: "The room is now lit. You can see a message on the floor." },
         { id: _this.ids.barWithoutCloakDisturbed, text: "The room is now lit. There is sawdust all over the floor, your movements previously must have distrubed it. There is a message written in the sawdust." },
@@ -56,11 +64,13 @@ const CloakOfDarkness = (function() {
         { id: _this.ids.win, text: "You Won!" },
         { id: _this.ids.disturbingMovement, text: "The room is dark and your movement is slow and steady, as you carefully walk you feel as though you are stepping on something on the floor and disturbing it." },
         { id: _this.ids.lost, text: "You Lost!" },    
-        { id: _this.ids.me, text: "You are an average male in your late 30's, approximately 6 feet tall and you are feeling great." },
+        { id: _this.ids.me, text: "You are an average male in your early 40's, nearly 6 feet tall and you are feeling great." },
         { id: _this.ids.cloakInfo, text: "By the way, you are wearing some crazy cloak that looks like it came straight out of the 1850's.." },
         { id: _this.ids.dontUnderstand, text: "I don't understand what you want." },
         { id: _this.ids.illegalDirection, text: "You cannot go in that direction." },
-        { id: _this.ids.inventoryEmpty, text: "Your inventory is empty." }
+        { id: _this.ids.inventoryEmpty, text: "Your inventory is empty." },
+        { id: _this.ids.hintCloakroom, text: "Maybe you can hang something on the brass hook?" },
+        { id: _this.ids.hintUnknown, text: "There are no hints for this room." }
     ];
     
     _this.exits = [
@@ -72,6 +82,16 @@ const CloakOfDarkness = (function() {
     _this.actions = [
         {            
             commands: [
+                {
+                    synonyms: ["hint"],
+                    perform: function(player) {
+                        if(player.room.name === "Cloakroom") {
+                            return _.find(_this.story, { id: _this.ids.hintCloakroom }).text
+                        } else {
+                            return _.find(_this.story, { id: _this.ids.hintUnknown }).text
+                        }
+                    }
+                },
                 {
                     synonyms: ["x me", "examine me"], 
                     perform: function(player) {
@@ -161,6 +181,13 @@ const CloakOfDarkness = (function() {
                             player.items = _.remove(player.items, "cloak of darkness");                               
                             return _.find(_this.story, { id: _this.ids.dropCloak }).text;
                         }
+                    }
+                },
+                {
+                    synonyms: ["x hook", "x brass hook", "examine hook", "examine brass hook"],
+                    perform: function(player) {
+                        player.score += 1;                        
+                        return _.find(_this.story, { id: _this.ids.brassHook }).text;
                     }
                 }
             ] 
