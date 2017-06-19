@@ -8,11 +8,11 @@ clone:
 
 http://www.firthworks.com/roger/cloak/
 
-##Screenshot
+## Screenshot
 
 ![Game user interface screenshot](screenshots/game.png)
 
-##Instructions
+## Instructions
 
 - Navigate rooms `e, east, w, west, n, north, s, south`
 - Examining yourself `x me, examine me`
@@ -25,7 +25,7 @@ Spoilers:
 - In the Bar you can `read message` if you have either hung up your cloak or 
 dropped it or disturbed the room with your movement
 
-##How can I run this?
+## How can I run this?
 
 Requirements: <b>node.js</b> - https://nodejs.org
 
@@ -61,7 +61,7 @@ the index.html page will open in your browser.
 live-server
 ```
 
-##Author(s):
+## Author(s):
 
 Frank Hale &lt;frankhale@gmail.com&gt;  
 18 September 2016
